@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NataR Studio — Portofolio & Manajemen Proyek</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        navy:'#14213D', navy2:'#1B2C50', navy3:'#24386A',
+        royal:'#2A4C8A', royal2:'#3A5FA8', sky:'#8AA9D6',
+        steel:'#787878', line:'#E6E9F0', soft:'#F4F6FB', paper:'#FBFCFE'
+      },
+      fontFamily: { display:['Jost','system-ui','sans-serif'], sans:['Inter','system-ui','sans-serif'] }
+    }
+  }
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--navy:#14213D;--navy2:#1B2C50;--royal:#2A4C8A;--royal2:#3A5FA8;--steel:#787878;--line:#E6E9F0;--soft:#F4F6FB;--red:#C0392B;--amber:#D68910;--green:#2E7D52;}
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;color:#14213D;background:#fff;line-height:1.55;-webkit-font-smoothing:antialiased;font-size:14px}
+  a{color:inherit;text-decoration:none}
+  ::-webkit-scrollbar{height:9px;width:9px}
+  ::-webkit-scrollbar-thumb{background:#cfd6e4;border-radius:9px}
+  ::-webkit-scrollbar-thumb:hover{background:#aab4c8}
+  .font-display{font-family:'Jost',sans-serif}
+  .brand{font-family:'Jost',sans-serif;font-weight:500;letter-spacing:-.01em}
+
+  .navlink{position:relative;font-weight:500;color:#3a4256;padding:4px 2px;font-size:15px;transition:color .15s}
+  .navlink:hover{color:var(--royal)}
+  .navlink.active{color:var(--royal)}
+  .navlink.active:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--royal)}
+
+  .sidelink{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:15px;color:#5a6173;border-bottom:1px solid var(--line);cursor:pointer;transition:color .15s;font-weight:400}
+  .sidelink:hover{color:var(--navy)}
+  .sidelink.active{color:var(--royal);font-weight:500}
+  .sidelink .dot{width:7px;height:7px;border-radius:50%;background:var(--royal);opacity:0;transition:.15s}
+  .sidelink.active .dot{opacity:1}
+
+  .work-card{position:relative;display:flex;flex-direction:column;min-height:340px;padding:26px 26px 24px;background:linear-gradient(158deg,#1d2f57 0%,#14213D 70%);color:#fff;overflow:hidden;border:1px solid rgba(255,255,255,.05);transition:transform .28s ease, box-shadow .28s ease}
+  .work-card:hover{transform:translateY(-5px);box-shadow:0 22px 45px -22px rgba(20,33,61,.65)}
+  .work-card .num{position:absolute;right:14px;bottom:-12px;font-family:'Jost',sans-serif;font-weight:300;font-size:128px;line-height:1;color:rgba(255,255,255,.10);pointer-events:none;transition:color .28s}
+  .work-card:hover .num{color:rgba(106,150,242,.20)}
+  .work-card .cat{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:#9db2d8;font-weight:500}
+  .work-card .nm{font-family:'Jost',sans-serif;font-weight:400;font-size:25px;line-height:1.18;margin-top:10px;max-width:80%}
+  .work-card .go{margin-top:auto;font-size:12px;letter-spacing:.04em;color:#c3d2ee;opacity:0;transform:translateY(6px);transition:.28s}
+  .work-card:hover .go{opacity:1;transform:none}
+  .meta-k{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#8aa0c8}
+  .meta-v{font-size:13px;color:#dfe6f3}
+  .chip{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;padding:3px 9px;border-radius:30px;text-transform:uppercase}
+
+  .st{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;padding:4px 11px;border-radius:30px}
+  .st:before{content:"";width:7px;height:7px;border-radius:50%}
+  .st-Perencanaan{background:#eef2fb;color:#3a4f86}.st-Perencanaan:before{background:#8AA9D6}
+  .st-Berjalan{background:#e9f3ec;color:#2E7D52}.st-Berjalan:before{background:#2E7D52}
+  .st-Konstruksi{background:#fdf3e6;color:#a96a13}.st-Konstruksi:before{background:#D68910}
+  .st-Selesai{background:#eceef2;color:#566}.st-Selesai:before{background:#787878}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;box-shadow:0 1px 2px rgba(20,33,61,.04)}
+
+  .ptab{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:9px;font-size:14px;color:#5a6173;cursor:pointer;font-weight:500;transition:.15s}
+  .ptab:hover{background:var(--soft);color:var(--navy)}
+  .ptab.active{background:var(--navy);color:#fff}
+  .ptab.active .ic{color:#9db2d8}
+
+  /* editable bits */
+  [contenteditable]{outline:none;border-radius:6px;transition:background .12s, box-shadow .12s;padding:1px 4px;margin:-1px -2px}
+  [contenteditable]:hover{background:#eef3ff}
+  [contenteditable]:focus{background:#fff;box-shadow:0 0 0 2px rgba(42,76,138,.35)}
+  [contenteditable]:empty:before{content:attr(data-ph);color:#aab2c2}
+  .mini{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:7px;border:1px solid var(--line);background:#fff;color:var(--steel);cursor:pointer;font-size:13px;line-height:1;flex-shrink:0}
+  .mini:hover{border-color:#b9c4dc;color:var(--navy)}
+  .mini.danger:hover{border-color:#e1a7a0;color:#b23;background:#fdf3f1}
+  .mini.sm-x{width:20px;height:20px;font-size:11px}
+  .addrow{display:inline-flex;align-items:center;gap:6px;color:var(--royal);font-weight:600;font-size:13px;cursor:pointer;padding:7px 2px;user-select:none}
+  .addrow:hover{text-decoration:underline}
+  input[type=color]{-webkit-appearance:none;appearance:none;width:34px;height:30px;border:1px solid var(--line);border-radius:7px;padding:2px;background:#fff;cursor:pointer;flex-shrink:0}
+  input[type=color]::-webkit-color-swatch-wrapper{padding:0}
+  input[type=color]::-webkit-color-swatch{border:none;border-radius:4px}
+  .wk-input{width:62px;border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;text-align:center;font-family:inherit;color:var(--navy)}
+  .sel-sm{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;background:#fff;font-family:inherit;color:var(--navy)}
+
+  .wbs-phase{border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  .wbs-head{display:flex;align-items:center;gap:12px;padding:11px 14px;cursor:pointer;background:var(--soft);font-weight:600;font-size:14px}
+  .wbs-head .n{background:var(--royal);color:#fff;width:27px;height:27px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;font-weight:700}
+  .wbs-head .ttl{flex:1;font-weight:600}
+  .wbs-head .cv{font-size:11px;color:var(--royal);font-weight:700;flex-shrink:0}
+  .wbs-head .wk{font-size:11px;color:var(--steel);font-weight:500;flex-shrink:0}
+  .wbs-body{padding:6px 14px 12px;display:none}
+  .wbs-body.open{display:block}
+  .wbs-item{display:flex;gap:11px;align-items:flex-start;padding:9px 0;border-bottom:1px dashed #eef1f6;font-size:13.5px}
+  .wbs-item:last-of-type{border-bottom:none}
+  .wbs-item input[type=checkbox]{margin-top:2px;width:17px;height:17px;accent-color:var(--royal);cursor:pointer;flex-shrink:0}
+  .wbs-item.done .tx{color:#9aa3b5;text-decoration:line-through}
+
+  .gantt-editor{display:flex;flex-direction:column;gap:9px;margin:8px 0 16px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .gantt-edit-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .gantt-edit-row .ge-name{flex:1;min-width:150px;font-weight:600;font-size:13.5px;color:var(--navy)}
+  .gantt-edit-row .ge-wk{font-size:12px;color:var(--steel);display:flex;align-items:center;gap:6px}
+  .ms-edit-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .ms-edit-row .ms-label{flex:1;border:1px solid var(--line);border-radius:7px;padding:6px 10px;font-size:13px;font-family:inherit;color:var(--navy)}
+
+  .gantt-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+  .gantt{min-width:920px;width:100%;border-collapse:collapse;font-size:12px}
+  .gantt th,.gantt td{border:1px solid #eef1f6;padding:0}
+  .gantt th{background:var(--soft);padding:7px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--steel)}
+  .gantt th.lbl,.gantt td.lbl{text-align:left;padding:9px 12px;min-width:240px;position:sticky;left:0;background:#fff;font-weight:600;font-size:12.5px;z-index:2}
+  .gantt th.lbl{background:var(--soft);z-index:3}
+  .gantt td{height:32px}
+  .bar{height:19px;border-radius:6px;margin:0 1px;position:relative}
+  .bar .ms{font-size:9px;color:#fff;font-weight:700;text-align:center;line-height:19px;white-space:nowrap}
+  .milestone{position:relative}
+  .milestone:after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--red);font-size:14px}
+
+  .chk{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+  .chk:last-child{border:none}
+  .chk input{margin-top:2px;width:18px;height:18px;accent-color:var(--royal);cursor:pointer;flex-shrink:0}
+  .chk .nm{font-weight:600;font-size:13.5px}
+  .chk .ds{font-size:12.5px;color:var(--steel);margin-top:2px}
+  .chk.done .nm{color:#9aa3b5;text-decoration:line-through}
+
+  .tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;color:#fff;letter-spacing:.03em;vertical-align:middle}
+  .t-rumah{background:#2E7D52}.t-komersial{background:#2A4C8A}.t-interior{background:#7A5EA8}.t-master{background:#C0851F}.t-all{background:#5a6173}
+
+  .mtg-card{border:1px solid var(--line);border-radius:14px;margin-bottom:16px;overflow:hidden}
+  .mtg-head{display:flex;align-items:center;gap:12px;padding:13px 16px;background:var(--soft);border-bottom:1px solid var(--line)}
+  .mtg-no{background:var(--navy);color:#fff;width:26px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+  .mtg-title{flex:1;font-weight:700;font-size:15px;color:var(--navy)}
+  .mtg-body{padding:16px}
+  .agenda{border-left:3px solid var(--royal);padding:4px 0 6px 16px;margin-bottom:16px}
+  .agenda-top{display:flex;align-items:center;gap:12px;margin-bottom:5px}
+  .agenda .tm{font-size:11px;font-weight:700;color:var(--royal);text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+  .agenda .tl{font-weight:700;font-size:14.5px;color:var(--navy)}
+  .agenda ul{margin:0;padding:0;list-style:none;font-size:13.5px;color:#3a4256}
+  .agenda li{display:flex;align-items:flex-start;gap:8px;margin:3px 0}
+  .agenda li:before{content:"•";color:var(--royal);margin-top:1px}
+
+  .sev{font-weight:700;font-size:11px;padding:3px 9px;border-radius:7px;color:#fff;text-align:center;white-space:nowrap}
+  .s-h{background:var(--red)}.s-m{background:var(--amber)}.s-l{background:var(--green)}
+  .matrix{display:grid;grid-template-columns:84px repeat(3,1fr);gap:5px;margin:6px 0 16px;max-width:560px}
+  .matrix div{padding:9px;text-align:center;font-size:11px;font-weight:600;border-radius:7px}
+  .mh{background:var(--soft);color:var(--steel)}
+  .cell{color:#fff}
+  .risk-tbl td{vertical-align:top}
+  .risk-tbl .sel-sm{width:100%}
+
+  .tree{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:13px;line-height:1.95;background:var(--navy);color:#e8eefb;padding:20px 22px;border-radius:12px;overflow-x:auto;white-space:pre}
+  .tree .f{color:#7fa8f5}.tree .c{color:#7f8aa3}
+
+  table.data{width:100%;border-collapse:collapse;font-size:13px}
+  table.data th,table.data td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:middle}
+  table.data th{background:var(--soft);font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--steel);font-weight:700}
+  table.data tr:hover td{background:#fafbfe}
+
+  .note{background:#eef3fc;border:1px solid #d4e0f7;border-radius:10px;padding:13px 15px;font-size:12.5px;color:#34507f}
+  .note b{color:var(--navy)}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;background:var(--royal);color:#fff;border:none;padding:10px 16px;border-radius:9px;font-size:13px;font-weight:600;cursor:pointer;transition:.15s;font-family:inherit}
+  .btn:hover{background:#1f3a6b}
+  .btn.ghost{background:#fff;color:var(--navy);border:1px solid var(--line)}
+  .btn.ghost:hover{border-color:#b9c4dc;background:var(--soft)}
+  .btn.dark{background:var(--navy)}.btn.dark:hover{background:#0e1830}
+  .btn.sm{padding:6px 12px;font-size:12px;border-radius:8px}
+
+  .field label{display:block;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--steel);margin-bottom:6px}
+  .field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--navy);background:#fff;outline:none;transition:.15s}
+  .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--royal);box-shadow:0 0 0 3px rgba(42,76,138,.12)}
+
+  .cover-up{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  .cover-prev{width:128px;height:84px;border-radius:10px;border:1px solid var(--line);background:var(--soft);overflow:hidden;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .cover-prev img{width:100%;height:100%;object-fit:cover}
+  .cover-prev span{font-size:11px;color:var(--steel);text-align:center;padding:0 6px}
+  .cover-actions{display:flex;flex-direction:column;gap:7px;align-items:flex-start}
+  .cover-hint{font-size:11px;color:var(--steel);margin:0;max-width:240px}
+
+  .backdrop{position:fixed;inset:0;background:rgba(15,22,42,.5);backdrop-filter:blur(3px);display:flex;align-items:flex-start;justify-content:center;padding:40px 16px;z-index:100;overflow-y:auto;animation:fade .18s ease}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:680px;box-shadow:0 30px 70px -20px rgba(15,22,42,.5);animation:pop .2s ease}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  @keyframes pop{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+
+  #toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center}
+  .toast{background:var(--navy);color:#fff;padding:11px 18px;border-radius:30px;font-size:13px;font-weight:500;box-shadow:0 12px 30px -10px rgba(15,22,42,.6);animation:tin .25s ease}
+  @keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+
+  .fade-in{animation:vin .3s ease}
+  @keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  @media print{header.topbar,.noprint{display:none!important}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+
+<header class="topbar sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-line">
+  <div class="max-w-[1240px] mx-auto px-6 h-[68px] flex items-center justify-between">
+    <a href="#/works" class="brand text-[26px] text-navy">natar<span class="text-royal">.</span></a>
+    <nav id="topnav" class="flex items-center gap-7"></nav>
+  </div>
+</header>
+
+<main id="view"></main>
+
+<footer class="noprint border-t border-line mt-10">
+  <div class="max-w-[1240px] mx-auto px-6 py-10 grid md:grid-cols-3 gap-6 text-sm text-steel">
+    <div>
+      <div class="brand text-[22px] text-navy mb-2">natar<span class="text-royal">.</span></div>
+      <p id="foot-full" class="max-w-xs leading-relaxed"></p>
+    </div>
+    <div>
+      <div class="meta-k text-steel mb-2">Navigasi</div>
+      <div class="flex flex-col gap-1">
+        <a href="#/works" class="hover:text-royal">Works</a>
+        <a href="#/about" class="hover:text-royal">About</a>
+        <a href="#/admin" class="hover:text-royal">Kelola Proyek</a>
+      </div>
+    </div>
+    <div>
+      <div class="meta-k text-steel mb-2">Idea, Design, Enrich.</div>
+      <p class="max-w-xs leading-relaxed">Studio arsitektur berbasis di Bandung. Setiap karya lahir dengan jiwa, dan harus memperkaya setiap manusia yang terlibat di dalamnya.</p>
+    </div>
+  </div>
+  <div class="border-t border-line py-5 text-center text-xs text-steel">© <span id="yr"></span> PT Nata Ruang Nusantara — NataR Studio. Prototipe sistem internal.</div>
+</footer>
+
+<div id="modal"></div>
+<div id="toast"></div>
+
+<script>
+/* =========================================================================
+   NATAR STUDIO — portfolio + project-management (single file)
+   Semua data per-proyek dapat diedit langsung (localStorage + import/export JSON)
+   ========================================================================= */
+const LS_KEY = 'natar_studio_v1';
+
+const CATEGORIES = ['Residential','Landed Housing','Masterplan','Mixed Use','Infrastructure','Urban Design','Sports Facility','Landscape'];
+const TYPES = [{v:'rumah',l:'Rumah Tinggal'},{v:'komersial',l:'Komersial'},{v:'interior',l:'Interior'},{v:'master',l:'Masterplan / Kawasan'}];
+const STATUSES = ['Perencanaan','Berjalan','Konstruksi','Selesai'];
+const TYPE_LABEL = Object.fromEntries(TYPES.map(t=>[t.v,t.l]));
+const LIKE_OPTS = ['Sering','Kadang','Jarang'];
+const IMPACT_OPTS = ['Rendah','Sedang','Tinggi'];
+const RISK_MATRIX = {Sering:{Rendah:'s-m',Sedang:'s-h',Tinggi:'s-h'},Kadang:{Rendah:'s-l',Sedang:'s-m',Tinggi:'s-h'},Jarang:{Rendah:'s-l',Sedang:'s-l',Tinggi:'s-m'}};
+const LVL_NAME = {'s-h':'Tinggi','s-m':'Sedang','s-l':'Rendah'};
+
+const STUDIO = {name:'natar',full:'PT Nata Ruang Nusantara',alias:'NataR Studio',tagline:'Idea, Design, Enrich.',city:'Bandung, Indonesia',
+  about:'Kami percaya ada makna yang lebih dalam dari sekadar menggambar bangunan atau merancang kota. Setiap karya lahir dengan jiwa, dan harus memperkaya setiap manusia yang terlibat di dalamnya.'};
+const EXPERTISE = ['Architecture','Interior Design','Landscape Design','Masterplan','Urban Design','Project Management'];
+const TIMELINE = [
+  ['2015','Pendirian <b>NataR Studio</b> di Bandung oleh sekelompok arsitek muda.'],
+  ['2017','Resmi menjadi <b>PT Nata Ruang Nusantara</b>, beroperasi dengan nama NataR Studio.'],
+  ['2019','Juara 1 Sayembara Revitalisasi Kawasan Cikapundung.'],
+  ['2021','Masuk 10 Besar <b>BCI Asia Awards</b> — Indonesian Architects.'],
+  ['2023','Penyelesaian <b>Intermodal Transit Hub Leuwipanjang</b> (fase 1).'],
+  ['2025','Juara 1 <b>Future Arcologies GAFA</b> (Global Architecture &amp; Future Awards).']
+];
+
+const SEED = [
+  {name:'Ambu Bata Villa',category:'Residential',type:'rumah',location:'Bandung, Indonesia',client:'Private',year:2024,status:'Konstruksi',value:'Rp 6,5 M',deadline:'Q4 2024',architect:'Ar. Raka Wijaya',team:'2 drafter · konsultan struktur',cover:'',description:'Vila privat dua lantai dengan ekspresi bata ekspos dan bukaan lebar yang merespons iklim tropis. Sirkulasi udara silang dan ruang dalam–luar yang menyatu menjadi inti gagasan desain.'},
+  {name:'Intermodal Transit Hub Leuwipanjang',category:'Infrastructure',type:'master',location:'Bandung, Indonesia',client:'Dinas Perhubungan & PT KAI',year:2023,status:'Berjalan',value:'Rp 184 M',deadline:'2026',architect:'Ar. Dian Permata',team:'Tim multidisiplin · konsultan MEP & transportasi',cover:'',description:'Simpul integrasi BRT, kereta, dan angkutan kota. Tata massa menekankan kejelasan alur penumpang, naungan, dan ruang publik yang manusiawi di tengah kepadatan kota.'},
+  {name:'Sundara Mixed-Use Tower',category:'Mixed Use',type:'komersial',location:'Jakarta, Indonesia',client:'PT Graha Sundara',year:2025,status:'Perencanaan',value:'Rp 420 M',deadline:'2028',architect:'Ar. Dian Permata',team:'Tim desain · konsultan struktur tinggi & MEP',cover:'',description:'Menara campuran ritel, perkantoran, dan hunian dengan podium publik aktif. Fasad berkinerja tinggi menyeimbangkan cahaya alami dan efisiensi energi.'},
+  {name:'Cikapundung Riverfront Walk',category:'Landscape',type:'master',location:'Bandung, Indonesia',client:'Pemerintah Kota Bandung',year:2019,status:'Selesai',value:'Rp 38 M',deadline:'Selesai 2021',architect:'Ar. Raka Wijaya',team:'Tim lanskap · konsultan hidrologi',cover:'',description:'Revitalisasi tepi sungai menjadi ruang publik linier yang menghubungkan komunitas dengan air. Pemenang sayembara revitalisasi kawasan Cikapundung.'},
+  {name:'Garut Sports Arena',category:'Sports Facility',type:'komersial',location:'Garut, Indonesia',client:'Dispora Kabupaten Garut',year:2024,status:'Konstruksi',value:'Rp 96 M',deadline:'2025',architect:'Ar. Bagas Nugraha',team:'Tim desain · konsultan struktur bentang lebar',cover:'',description:'Arena olahraga serbaguna dengan atap bentang lebar dan pencahayaan alami. Dirancang fleksibel untuk pertandingan, latihan, dan acara komunitas.'},
+  {name:'Pasir Koja Creative Hub',category:'Urban Design',type:'komersial',location:'Bandung, Indonesia',client:'PT Ruang Kreatif Nusantara',year:2025,status:'Perencanaan',value:'Rp 72 M',deadline:'2027',architect:'Ar. Bagas Nugraha',team:'Tim desain · konsultan interior',cover:'',description:'Adaptasi kawasan menjadi pusat ekonomi kreatif: studio, ko-working, dan ruang pamer. Mendorong perjumpaan publik melalui plaza dan jalur pejalan kaki yang hidup.'}
+];
+
+/* ---- seed templates (jadi titik awal data per-proyek yang bisa diedit) ---- */
+const WBS = [
+  {n:1,t:'Persiapan & Konsep (Pra-rancangan)',s:1,e:2,c:'#2A4C8A',items:[
+    ['Kontrak kerja & SPK ditandatangani, lingkup + termin pembayaran disepakati','all'],
+    ['Brief klien: kebutuhan ruang, gaya, anggaran konstruksi, preferensi','all'],
+    ['Survei & pengukuran tapak, dokumentasi foto eksisting','all'],
+    ['Cek sertifikat tanah (SHM/HGB), KRK / advis planning, GSB & KDB-KLB','all'],
+    ['Analisis tapak: orientasi matahari, angin, kontur, akses, drainase','rumah komersial master'],
+    ['Inventarisasi kondisi eksisting & as-built bangunan','interior'],
+    ['Konsep desain & moodboard, zoning awal','all'],
+    ['Estimasi biaya konstruksi kasar (rough order of magnitude)','all']]},
+  {n:2,t:'Skematik Desain (SD)',s:3,e:6,c:'#2A4C8A',items:[
+    ['Denah skematik, gubahan massa, blok plan','all'],
+    ['Tata letak furnitur & alur sirkulasi','interior'],
+    ['Sketsa 3D / studi massa, tampak awal','all'],
+    ['Konsep struktur & sistem MEP secara garis besar','rumah komersial master'],
+    ['Rencana fasad & material palette','all'],
+    ['Presentasi SD ke klien + revisi putaran 1','all'],
+    ['Rencana tapak kawasan & pembagian kavling/zona','master']]},
+  {n:3,t:'Pengembangan Rancangan (DD)',s:7,e:11,c:'#3A5FA8',items:[
+    ['Denah, tampak, potongan terukur & terskala','all'],
+    ['Render 3D fotorealistik interior & eksterior','all'],
+    ['Pemilihan material, finishing, fixture final + spesifikasi','all'],
+    ['Koordinasi konsultan struktur (perhitungan awal)','rumah komersial master'],
+    ['Koordinasi konsultan ME (listrik, plumbing, AC, fire)','komersial master'],
+    ['RAB pengembangan (cost plan) per item pekerjaan','all'],
+    ['Skema FF&E & custom furniture detail','interior'],
+    ['Approval DD dari klien (sign-off sebelum gambar kerja)','all']]},
+  {n:4,t:'Gambar Kerja / DED (Construction Documents)',s:12,e:18,c:'#24386A',items:[
+    ['Gambar arsitektur lengkap: denah, tampak, potongan, detail','all'],
+    ['Detail prinsip: kusen, tangga, kamar mandi, plafon, dinding','all'],
+    ['Gambar struktur (pondasi, kolom, balok, pelat) — konsultan','rumah komersial master'],
+    ['Gambar MEP lengkap & diagram instalasi — konsultan','komersial master'],
+    ['Gambar shop drawing furniture & detail fabrikasi','interior'],
+    ['RKS (Rencana Kerja & Syarat) / spesifikasi teknis','all'],
+    ['BoQ & RAB final untuk tender','all'],
+    ['Koordinasi antar-disiplin & clash check','komersial master']]},
+  {n:5,t:'Perizinan & Pengadaan / Tender',s:16,e:22,c:'#2E7D52',items:[
+    ['Submit PBG via SIMBG + kelengkapan dokumen','rumah komersial master'],
+    ['Dokumen tender disusun & dikirim ke kontraktor','all'],
+    ['Aanwijzing (penjelasan tender) & evaluasi penawaran','komersial master'],
+    ['Rekomendasi pemenang tender ke klien','all'],
+    ['Pemilihan vendor furniture & kontraktor fit-out','interior'],
+    ['Kontrak pelaksanaan konstruksi ditandatangani','all']]},
+  {n:6,t:'Pengawasan Berkala (Construction Admin)',s:20,e:23,c:'#C0851F',items:[
+    ['Kunjungan lapangan berkala & laporan progres','all'],
+    ['Review & approve shop drawing kontraktor','all'],
+    ['Cek kesesuaian pelaksanaan dgn desain & spesifikasi','all'],
+    ['Evaluasi material on-site / approval sample','all'],
+    ['Manajemen perubahan desain (variation order) terdokumentasi','all'],
+    ['Sertifikasi pembayaran progres ke kontraktor','komersial master']]},
+  {n:7,t:'Serah Terima & Penutupan',s:23,e:24,c:'#787878',items:[
+    ['Punch list / daftar cacat & perbaikan akhir','all'],
+    ['Pengurusan SLF (Sertifikat Laik Fungsi)','rumah komersial master'],
+    ['As-built drawing & dokumen O&M / manual','all'],
+    ['Dokumentasi foto profesional hasil akhir','all'],
+    ['Serah terima ke klien + berita acara','all'],
+    ['Pelunasan termin akhir & evaluasi proyek internal','all']]}
+];
+const MILESTONES_SEED = [[2,'Konsep OK'],[6,'SD Approved'],[11,'DD Sign-off'],[18,'DED Selesai'],[20,'Kontraktor Terpilih'],[22,'PBG Terbit'],[24,'Serah Terima']];
+
+const IZIN = [
+  ['Sertifikat tanah (SHM / HGB) & bukti kepemilikan','Verifikasi keaslian & status sengketa sebelum mulai. Wajib untuk PBG.','all'],
+  ['KRK / Keterangan Rencana Kota (advis planning)','Info GSB, KDB, KLB, KDH, peruntukan lahan. Dasar seluruh desain.','rumah komersial master'],
+  ['KKPR (Kesesuaian Kegiatan Pemanfaatan Ruang)','Untuk kegiatan komersial/kawasan—pengganti izin lokasi.','komersial master'],
+  ['PBG — Persetujuan Bangunan Gedung (via SIMBG)','Pengganti IMB. Butuh gambar arsitektur, struktur, MEP + dokumen teknis.','rumah komersial master'],
+  ['Dokumen lingkungan: SPPL / UKL-UPL / AMDAL','Skala kecil=SPPL; menengah=UKL-UPL; besar/berdampak=AMDAL.','komersial master'],
+  ['ANDALALIN (Analisis Dampak Lalu Lintas)','Untuk bangunan komersial/kawasan yang membangkitkan lalu lintas.','komersial master'],
+  ['Rekomendasi proteksi kebakaran (Damkar)','Sistem fire protection untuk bangunan publik/komersial.','komersial master'],
+  ['Persetujuan lingkungan / izin tetangga (sempadan)','Terutama untuk rumah berhimpit / bangunan tinggi.','rumah komersial'],
+  ['Perhitungan & gambar struktur ber-SKA','Ditandatangani ahli bersertifikat untuk PBG.','rumah komersial master'],
+  ['SLF — Sertifikat Laik Fungsi','Wajib sebelum bangunan digunakan. Diurus setelah konstruksi selesai.','rumah komersial master'],
+  ['Izin reklame / signage','Jika ada papan nama/iklan di fasad.','komersial interior'],
+  ['Kontrak kerja arsitek (SPK) & NDA bila perlu','Lindungi lingkup, termin, hak cipta desain.','all'],
+  ['Asuransi proyek / CAR (Contractor All Risk)','Untuk proyek konstruksi bernilai besar.','komersial master'],
+  ['Dokumentasi as-built & SOP gedung','Diserahkan saat serah terima.','all']
+];
+
+const AGENDA_SEED = [
+  ['0–10 mnt','Pembukaan & perkenalan',['Perkenalan tim studio + peran masing-masing (arsitek utama, drafter, PM)','Perkenalan pihak klien & pengambil keputusan utama','Tujuan meeting & agenda hari ini']],
+  ['10–30 mnt','Pemahaman brief & visi klien',['Kebutuhan ruang & fungsi — konfirmasi ulang','Gaya/estetika yang diinginkan (tunjukkan referensi)','Anggaran konstruksi target & batas atas','Siapa pengguna akhir & gaya hidup / operasional']],
+  ['30–50 mnt','Konteks tapak & batasan',['Status lahan, KRK, GSB/KDB/KLB','Kondisi eksisting / hasil survei awal','Batasan regulasi & perizinan (PBG, SLF, dll)','Kendala teknis: akses, utilitas, tetangga']],
+  ['50–70 mnt','Lingkup, proses & timeline',['Penjelasan 7 fase kerja (tunjukkan WBS & Gantt)','Milestone & titik approval klien','Estimasi durasi & deadline serah','Termin pembayaran & nilai kontrak']],
+  ['70–85 mnt','Cara kerja & komunikasi',['Channel komunikasi (WA/email/Notion) & PIC','Frekuensi update & meeting rutin','Cara handle revisi & variation order','Akses folder Drive bersama']],
+  ['85–90 mnt','Penutup & tindak lanjut',['Rekap keputusan & kesepakatan','Action items + penanggung jawab + tenggat','Jadwal meeting berikutnya','Dokumen yang ditunggu dari klien (sertifikat, dll)']]
+];
+
+const RISKS_SEED = [
+  ['Scope creep — klien terus menambah permintaan','Sering','Tinggi','Kontrak jelas + lingkup terdokumentasi; setiap perubahan = variation order tertulis berbiaya.'],
+  ['Perizinan (PBG) molor / ditolak','Kadang','Tinggi','Mulai urus sejak DD; libatkan konsultan izin; siapkan dokumen lengkap & ber-SKA.'],
+  ['Estimasi biaya meleset dari RAB','Sering','Sedang','Cost plan tiap fase; buffer 10–15%; update RAB di tiap milestone.'],
+  ['Keterlambatan approval klien','Sering','Sedang','Tetapkan SLA approval (mis. 5 hari kerja) di kontrak; jadwal Gantt dengan buffer.'],
+  ['Revisi desain berulang (indecisive client)','Sering','Sedang','Batasi 2–3 putaran revisi per fase di kontrak; ekstra revisi = biaya tambahan.'],
+  ['Koordinasi antar-konsultan (struktur/MEP) bentrok','Kadang','Sedang','Clash check rutin; satu titik koordinasi (PM); BIM/overlay bila memungkinkan.'],
+  ['Kondisi tapak tak sesuai data (tanah, eksisting)','Kadang','Tinggi','Soil test & survei detail di awal; klausul kondisi tak terduga di kontrak.'],
+  ['Kontraktor kualitas rendah / mundur dari desain','Kadang','Tinggi','Seleksi tender ketat; pengawasan berkala; shop drawing wajib di-approve.'],
+  ['Pembayaran termin klien tersendat','Kadang','Tinggi','Termin di muka tiap fase; tahan deliverable sampai pelunasan; klausul penalti.'],
+  ['Anggota tim kunci sakit/resign','Jarang','Sedang','Dokumentasi & file terstruktur (folder standar); cross-training; backup drafter.'],
+  ['Perubahan regulasi daerah (KDB/KLB/GSB)','Jarang','Tinggi','Verifikasi KRK terbaru di awal; jaga relasi dgn dinas; review berkala.'],
+  ['Force majeure (cuaca, ekonomi, dll)','Jarang','Tinggi','Klausul force majeure di kontrak; asuransi CAR; timeline dengan kontingensi.']
+];
+
+/* =========================================================================
+   STATE
+   ========================================================================= */
+let state = {projects:[]};
+let _saveT;
+const saveSoon = ()=>{ clearTimeout(_saveT); _saveT=setTimeout(saveState,400); };
+
+const slugify = s => (s||'').toString().toLowerCase().trim().replace(/&/g,' dan ').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,60)||'proyek';
+function uniqueId(base,exceptId){ let id=base,i=2; while(state.projects.some(p=>p.id===id&&p.id!==exceptId)){ id=base+'-'+i; i++; } return id; }
+const rid = ()=>Math.random().toString(36).slice(2,8);
+function projectCode(name){ const w=(name||'').replace(/[^A-Za-z0-9 ]/g,'').split(/\s+/).filter(Boolean); if(!w.length)return 'PRJ'; let c=w.slice(0,3).map(x=>x[0]).join('').toUpperCase(); return c.length<2?(w[0].slice(0,3).toUpperCase()):c; }
+
+const relevant = (tag,type)=> tag==='all' || tag.split(' ').includes(type);
+const filteredIzin = type => IZIN.filter(it=>relevant(it[2],type));
+const clampWeek = v => { v=parseInt(v)||1; return Math.min(Math.max(v,1),72); };
+const riskLevel = (like,impact)=> (RISK_MATRIX[like]&&RISK_MATRIX[like][impact])||'s-m';
+
+/* ---- seed builders for a project's editable data ---- */
+function seedPhases(type){
+  return WBS.map((ph,i)=>({
+    id:'ph'+(i+1)+'-'+rid(),
+    title:ph.t, ws:ph.s, we:ph.e, color:ph.c,
+    items: ph.items.filter(it=>relevant(it[1],type)).map(it=>({text:it[0],done:false,tag:it[1]}))
+  }));
+}
+const seedMilestones = ()=> MILESTONES_SEED.map(m=>({week:m[0],label:m[1]}));
+const seedMeetings = ()=> [{id:'mtg-'+rid(),title:'Meeting Perdana (Kickoff)',date:'',blocks:AGENDA_SEED.map(a=>({time:a[0],title:a[1],points:a[2].slice()}))}];
+const seedRisks = ()=> RISKS_SEED.map(r=>({title:r[0],like:r[1],impact:r[2],mit:r[3],pic:''}));
+
+/* ---- repair / migrate a project so all editable arrays exist ---- */
+function ensure(p){
+  if(!Array.isArray(p.phases)||!p.phases.length){
+    p.phases = seedPhases(p.type||'rumah');
+    if(p.wbsDone){ p.phases.forEach((ph,i)=>{ const o=p.wbsDone[i+1]; if(Array.isArray(o)) ph.items.forEach((it,j)=>{ if(o[j]) it.done=true; }); }); }
+    delete p.wbsDone;
+  }
+  p.phases.forEach(ph=>{ ph.ws=clampWeek(ph.ws); ph.we=clampWeek(ph.we); if(ph.we<ph.ws)ph.we=ph.ws; if(!/^#/.test(ph.color||''))ph.color='#2A4C8A'; ph.items=ph.items||[]; });
+  if(!Array.isArray(p.milestones)) p.milestones = seedMilestones();
+  if(!Array.isArray(p.meetings)||!p.meetings.length) p.meetings = seedMeetings();
+  if(!Array.isArray(p.riskRows)||!p.riskRows.length) p.riskRows = seedRisks();
+  if(!Array.isArray(p.izinDone)) p.izinDone=[];
+  const il=filteredIzin(p.type||'rumah').length; while(p.izinDone.length<il)p.izinDone.push(false); p.izinDone=p.izinDone.slice(0,il);
+  return p;
+}
+function normalize(x){
+  const p=Object.assign({name:'Proyek',category:CATEGORIES[0],type:'rumah',location:'',client:'',year:new Date().getFullYear(),status:'Perencanaan',value:'',deadline:'',architect:'',team:'',cover:'',description:''}, x);
+  if(!p.id) p.id=uniqueId(slugify(p.name));
+  return ensure(p);
+}
+function newProject(d){ const base=Object.assign({},d); base.id=uniqueId(slugify(d.name||'proyek')); return normalize(base); }
+
+function loadState(){
+  try{ const raw=localStorage.getItem(LS_KEY); if(raw){ const p=JSON.parse(raw); if(p&&Array.isArray(p.projects)){ state={projects:p.projects.map(normalize)}; return; } } }catch(e){ console.warn('load gagal',e); }
+  state={projects:SEED.map(normalize)}; saveState();
+}
+function saveState(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){ toast('Gagal menyimpan — penyimpanan browser penuh (gambar cover terlalu besar?)'); } }
+
+function wbsProgress(p){ ensure(p); let total=0,done=0; p.phases.forEach(ph=>ph.items.forEach(it=>{ total++; if(it.done)done++; })); return {done,total,pct:total?Math.round(done/total*100):0}; }
+function izinProgress(p){ ensure(p); const t=p.izinDone.length,d=p.izinDone.filter(Boolean).length; return {done:d,total:t,pct:t?Math.round(d/t*100):0}; }
+function projWeeks(p){ let m=12; p.phases.forEach(ph=>{ if(ph.we>m)m=ph.we; }); p.milestones.forEach(ms=>{ if(ms.week>m)m=ms.week; }); return Math.min(Math.max(m,12),72); }
+
+/* =========================================================================
+   HELPERS
+   ========================================================================= */
+const $ = sel => document.querySelector(sel);
+const view = ()=>$('#view');
+const esc = s => (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = i => String(i).padStart(2,'0');
+const projIndex = p => state.projects.indexOf(p);
+const projNum = p => pad(projIndex(p)+1);
+const currentProject = ()=>{ const id=(location.hash.split('/')[2]||''); return state.projects.find(p=>p.id===id); };
+const tagNorm = t => (t==='all')?'all':(t.split(' ')[0]);
+const tagClass = t => 't-'+tagNorm(t);
+const tagShort = t => { if(t==='all')return 'Semua'; const m={rumah:'Rumah',komersial:'Komersial',interior:'Interior',master:'Master'}; return t.split(' ').length>1?'Spesifik':(m[tagNorm(t)]||t); };
+const tagHtml = s => s==='all'?'<span class="tag t-all">Semua</span>':s.split(' ').map(k=>`<span class="tag t-${k}">${({rumah:'Rumah',komersial:'Komersial',interior:'Interior',master:'Master'})[k]||k}</span>`).join(' ');
+function toast(msg){ const t=document.createElement('div'); t.className='toast'; t.textContent=msg; $('#toast').appendChild(t); setTimeout(()=>{ t.style.opacity='0'; t.style.transition='.3s'; setTimeout(()=>t.remove(),300); },2200); }
+function kpi(n,l){ return `<div class="bg-soft border border-line rounded-xl p-4"><div class="font-display text-[28px] font-medium text-royal leading-none">${n}</div><div class="meta-k text-steel mt-2">${l}</div></div>`; }
+
+/* =========================================================================
+   NAV
+   ========================================================================= */
+function renderNav(active){
+  const items=[['works','Works','#/works'],['about','About','#/about'],['tools','Tools','Tools.html'],['admin','Kelola','#/admin']];
+  $('#topnav').innerHTML = items.map(([k,l,href])=>`<a href="${href}" class="navlink ${active===k?'active':''}">${l}</a>`).join('');
+}
+
+/* =========================================================================
+   WORKS
+   ========================================================================= */
+let worksFilter='all', worksSearch='';
+function renderWorks(){
+  const cats = CATEGORIES.filter(c=>state.projects.some(p=>p.category===c));
+  view().innerHTML = `
+  <div class="max-w-[1240px] mx-auto px-6 py-10 fade-in">
+    <div class="grid md:grid-cols-[230px_1fr] gap-10">
+      <aside class="md:sticky md:top-[88px] self-start">
+        <h1 class="font-display text-[34px] font-light text-navy leading-none">Works</h1>
+        <div class="w-12 h-[2px] bg-royal mt-3 mb-7"></div>
+        <div class="meta-k text-steel mb-3">Featured Project</div>
+        <input id="works-search" placeholder="Cari proyek / klien…" value="${esc(worksSearch)}" class="w-full mb-4 border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-royal">
+        <div id="cat-list">
+          <div class="sidelink ${worksFilter==='all'?'active':''}" data-action="filter" data-cat="all"><span>Semua Karya</span><span class="dot"></span></div>
+          ${cats.map(c=>`<div class="sidelink ${worksFilter===c?'active':''}" data-action="filter" data-cat="${esc(c)}"><span>${esc(c)}</span><span class="dot"></span></div>`).join('')}
+        </div>
+        <a href="#/admin" class="btn ghost sm mt-7 w-full justify-center">+ Kelola Proyek</a>
+      </aside>
+      <section>
+        <div class="flex items-end justify-between border-b border-line pb-4 mb-7">
+          <h2 class="font-display text-[30px] font-light text-navy">Selected Works</h2>
+          <div id="works-count" class="text-sm text-steel"></div>
+        </div>
+        <div id="works-grid" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </section>
+    </div>
+  </div>`;
+  paintGrid();
+}
+function paintGrid(){
+  const q=worksSearch.toLowerCase();
+  const list=state.projects.filter(p=>{
+    const okCat=worksFilter==='all'||p.category===worksFilter;
+    const okQ=!q||(p.name+' '+p.client+' '+p.location+' '+p.category).toLowerCase().includes(q);
+    return okCat&&okQ;
+  });
+  const grid=$('#works-grid'); if(!grid)return;
+  if(!list.length){
+    grid.innerHTML=`<div class="col-span-full text-center text-steel py-16 border border-dashed border-line rounded-xl">Tidak ada proyek yang cocok. <a href="#/admin" class="text-royal font-medium">Tambah proyek →</a></div>`;
+  } else {
+    grid.innerHTML=list.map(p=>{
+      const bg = p.cover ? `style="background-image:linear-gradient(158deg,rgba(20,33,61,.82),rgba(20,33,61,.55)),url('${p.cover}');background-size:cover;background-position:center"`:'';
+      return `<a href="#/project/${p.id}" class="work-card group" ${bg}>
+        <div class="num">${projNum(p)}</div>
+        <div class="cat">${esc(p.category)}</div>
+        <div class="nm">${esc(p.name)}</div>
+        <div class="mt-5 grid grid-cols-2 gap-3 relative z-10">
+          <div><div class="meta-k">Location</div><div class="meta-v">${esc(p.location||'—')}</div></div>
+          <div><div class="meta-k">Client</div><div class="meta-v">${esc(p.client||'—')}</div></div>
+        </div>
+        <div class="go">Lihat proyek →</div>
+      </a>`;
+    }).join('');
+  }
+  $('#works-count').textContent=`${pad(list.length)} / ${pad(state.projects.length)} Proyek`;
+}
+
+/* =========================================================================
+   PROJECT
+   ========================================================================= */
+let projTab='ringkasan';
+let wbsOpen=new Set([0]);
+
+function renderProject(id){
+  const p=state.projects.find(x=>x.id===id);
+  if(!p){ view().innerHTML=`<div class="max-w-[900px] mx-auto px-6 py-24 text-center"><h2 class="font-display text-3xl text-navy mb-3">Proyek tidak ditemukan</h2><p class="text-steel mb-6">Mungkin sudah dihapus atau tautannya berubah.</p><a href="#/works" class="btn">← Kembali ke Works</a></div>`; return; }
+  ensure(p); projTab='ringkasan'; wbsOpen=new Set([0]);
+  const wp=wbsProgress(p);
+  const hero=p.cover?`style="background-image:linear-gradient(158deg,rgba(20,33,61,.86),rgba(20,33,61,.78)),url('${p.cover}');background-size:cover;background-position:center"`:'';
+  view().innerHTML=`
+  <div class="fade-in">
+    <section class="bg-navy text-white relative overflow-hidden" ${hero}>
+      <div class="max-w-[1240px] mx-auto px-6 pt-7 pb-12 relative">
+        <div class="flex items-center justify-between text-sm noprint">
+          <a href="#/works" class="text-sky hover:text-white transition">← Semua Karya</a>
+          <button class="btn ghost sm" data-action="edit" data-id="${p.id}" style="background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.2)">✎ Edit Info Proyek</button>
+        </div>
+        <div class="absolute right-6 top-16 font-display font-light leading-none select-none pointer-events-none" style="font-size:170px;color:rgba(255,255,255,.07)">${projNum(p)}</div>
+        <div class="mt-10 relative">
+          <div class="chip" style="background:rgba(138,169,214,.18);color:#cdd9ef">${esc(p.category)}</div>
+          <h1 class="font-display font-light leading-[1.05] mt-4" style="font-size:clamp(34px,5vw,58px);max-width:14ch">${esc(p.name)}</h1>
+          <p class="mt-5 text-[15px] text-[#cdd8ee] max-w-2xl leading-relaxed">${esc(p.description)}</p>
+        </div>
+        <div class="mt-9 grid grid-cols-2 md:grid-cols-4 gap-5 max-w-3xl relative">
+          ${[['Location',p.location],['Client',p.client],['Year',p.year],['Tipe',TYPE_LABEL[p.type]]].map(([k,v])=>`<div><div class="meta-k">${k}</div><div class="meta-v">${esc(v||'—')}</div></div>`).join('')}
+        </div>
+        <div class="mt-6 flex flex-wrap items-center gap-4 relative">
+          <span class="st st-${p.status}">${p.status}</span>
+          <div class="flex items-center gap-3">
+            <div class="meta-k">Progres desain</div>
+            <div class="w-44 h-2 rounded-full" style="background:rgba(255,255,255,.15)"><div id="hero-bar" class="h-2 rounded-full" style="width:${wp.pct}%;background:#8AA9D6"></div></div>
+            <span id="hero-pct" class="text-sm font-semibold">${wp.pct}%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="max-w-[1240px] mx-auto px-6 py-9">
+      <div class="grid md:grid-cols-[230px_1fr] gap-9">
+        <aside class="md:sticky md:top-[88px] self-start noprint">
+          <div class="meta-k text-steel mb-3">Workspace Proyek</div>
+          <nav id="ptabs" class="flex flex-col gap-1">
+            ${[['ringkasan','◷','Ringkasan'],['wbs','▣','WBS / Deliverable'],['gantt','▭','Timeline Gantt'],['izin','✔','Checklist Izin'],['agenda','◑','Agenda Meeting'],['risk','⚠','Risk Register'],['folder','▢','Struktur Folder']].map(([k,ic,l])=>`<div class="ptab ${k==='ringkasan'?'active':''}" data-action="tab" data-tab="${k}"><span class="ic">${ic}</span>${l}</div>`).join('')}
+          </nav>
+          <button class="btn dark sm w-full justify-center mt-5" onclick="window.print()">🖨 Cetak / PDF</button>
+        </aside>
+        <div id="ptab-body"></div>
+      </div>
+    </section>
+  </div>`;
+  paintTab(p);
+}
+function paintTab(p){
+  const body=$('#ptab-body'); if(!body)return;
+  body.className='fade-in';
+  body.innerHTML=({ringkasan:tabRingkasan,wbs:tabWbs,gantt:tabGantt,izin:tabIzin,agenda:tabAgenda,risk:tabRisk,folder:tabFolder}[projTab])(p);
+}
+function refreshProgress(p){
+  const wp=wbsProgress(p);
+  ['hero-bar','ring-bar'].forEach(id=>{ const el=document.getElementById(id); if(el)el.style.width=wp.pct+'%'; });
+  ['hero-pct','ring-pct'].forEach(id=>{ const el=document.getElementById(id); if(el)el.textContent=wp.pct+'%'; });
+  const rc=document.getElementById('ring-count'); if(rc)rc.textContent=wp.done+'/'+wp.total;
+}
+
+function tabRingkasan(p){
+  const wp=wbsProgress(p), ip=izinProgress(p);
+  return `
+  <div class="card mb-5">
+    <h2 class="font-display text-2xl text-navy mb-1">Ringkasan Proyek</h2>
+    <p class="text-steel text-sm mb-5">Pusat kerja harian. Semua tab dapat diedit langsung — centang deliverable WBS, atur jadwal Gantt, kelola agenda & risiko. Progres dihitung otomatis.</p>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      ${kpi(wp.pct+'%','Progres desain (WBS)')}
+      ${kpi('<span id="ring-count">'+wp.done+'/'+wp.total+'</span>','Deliverable selesai')}
+      ${kpi(ip.done+'/'+ip.total,'Izin & dokumen beres')}
+      ${kpi(p.phases.length,'Fase proyek')}
+    </div>
+    <div class="mt-5">
+      <div class="flex justify-between text-xs text-steel mb-1"><span>Progres keseluruhan</span><span id="ring-pct">${wp.pct}%</span></div>
+      <div class="h-2.5 bg-soft rounded-full overflow-hidden"><div id="ring-bar" class="h-2.5 rounded-full" style="width:${wp.pct}%;background:linear-gradient(90deg,#2A4C8A,#8AA9D6)"></div></div>
+    </div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-5">
+    <div class="card">
+      <h3 class="font-semibold text-navy mb-3">Detail kontrak</h3>
+      <table class="data">
+        <tr><th>Nilai kontrak</th><td>${esc(p.value||'—')}</td></tr>
+        <tr><th>Deadline serah</th><td>${esc(p.deadline||'—')}</td></tr>
+        <tr><th>Arsitek utama</th><td>${esc(p.architect||'—')}</td></tr>
+        <tr><th>Tim</th><td>${esc(p.team||'—')}</td></tr>
+        <tr><th>Status</th><td><span class="st st-${p.status}">${p.status}</span></td></tr>
+      </table>
+    </div>
+    <div class="card">
+      <h3 class="font-semibold text-navy mb-3">Panduan tab (semua bisa diedit)</h3>
+      <table class="data">
+        <tr><th>WBS</th><td>Edit deliverable per fase + centang selesai</td></tr>
+        <tr><th>Gantt</th><td>Atur minggu mulai/selesai — sinkron WBS</td></tr>
+        <tr><th>Izin</th><td>Checklist PBG, SLF, KRK, dok lingkungan</td></tr>
+        <tr><th>Agenda</th><td>Banyak meeting, rinci per segmen waktu</td></tr>
+        <tr><th>Risk</th><td>Risiko + PIC + level otomatis</td></tr>
+        <tr><th>Folder</th><td>Struktur Drive standar studio</td></tr>
+      </table>
+    </div>
+  </div>
+  <div class="note mt-5"><b>Tahapan</b> mengikuti layanan jasa arsitek IAI (Konsep → SD → DD → DED → Tender → Pengawasan → Serah Terima). Durasi minggu = estimasi rumah tinggal; sesuaikan bebas di tab Gantt.</div>`;
+}
+
+function tabWbs(p){
+  ensure(p);
+  const wp=wbsProgress(p);
+  const legend=[['rumah','Rumah'],['komersial','Komersial'],['interior','Interior'],['master','Master'],['all','Semua']].map(([k,l])=>`<span class="flex items-center gap-1.5"><i class="tag t-${k}" style="width:14px;height:8px;padding:0;border-radius:3px"></i>${l}</span>`).join('');
+  return `
+  <div class="card">
+    <h2 class="font-display text-2xl text-navy mb-1">Work Breakdown Structure</h2>
+    <p class="text-steel text-sm mb-1">Klik judul/teks untuk mengedit. Centang deliverable yang selesai — progres otomatis (${wp.done}/${wp.total}). Jadwal mingguan tersinkron dengan tab <b>Timeline Gantt</b>.</p>
+    <div class="flex flex-wrap gap-3 my-4 text-xs text-steel">${legend}<span class="text-steel/70">· klik tag untuk ganti tipe</span></div>
+    <div id="wbs-list">
+    ${p.phases.map((ph,pi)=>{
+      const done=ph.items.filter(it=>it.done).length;
+      return `<div class="wbs-phase">
+        <div class="wbs-head" data-action="phase-toggle" data-pi="${pi}">
+          <span class="n">${pi+1}</span>
+          <span class="ttl" contenteditable data-edit="phase.title.${pi}" data-ph="Nama fase">${esc(ph.title)}</span>
+          <span class="cv" data-cv="${pi}">${done}/${ph.items.length}</span>
+          <span class="wk">Mgg ${ph.ws}–${ph.we}</span>
+          <button class="mini danger" data-action="phase-del" data-pi="${pi}" title="Hapus fase">✕</button>
+        </div>
+        <div class="wbs-body ${wbsOpen.has(pi)?'open':''}">
+          ${ph.items.map((it,ii)=>`<div class="wbs-item ${it.done?'done':''}">
+            <input type="checkbox" data-kind="wbs" data-id="${p.id}" data-pi="${pi}" data-ii="${ii}" ${it.done?'checked':''}>
+            <span class="tx flex-1" contenteditable data-edit="item.text.${pi}.${ii}" data-ph="Deskripsi deliverable">${esc(it.text)}</span>
+            <button class="tag ${tagClass(it.tag)}" data-action="item-tag" data-pi="${pi}" data-ii="${ii}" title="Klik untuk ganti tipe" style="cursor:pointer;border:none">${tagShort(it.tag)}</button>
+            <button class="mini danger sm-x" data-action="item-del" data-pi="${pi}" data-ii="${ii}" title="Hapus">✕</button>
+          </div>`).join('')}
+          <div class="addrow" data-action="item-add" data-pi="${pi}">+ Tambah deliverable</div>
+        </div>
+      </div>`;
+    }).join('')}
+    </div>
+    <div class="addrow" data-action="phase-add">+ Tambah fase</div>
+  </div>`;
+}
+
+function tabGantt(p){
+  ensure(p);
+  const W=projWeeks(p);
+  const editor=p.phases.map((ph,pi)=>`<div class="gantt-edit-row">
+    <input type="color" data-edit="phase.color.${pi}" value="${/^#[0-9a-fA-F]{6}$/.test(ph.color)?ph.color:'#2A4C8A'}">
+    <span class="ge-name">${pi+1}. ${esc(ph.title)}</span>
+    <label class="ge-wk">Mulai <input class="wk-input" type="number" min="1" max="72" data-edit="phase.ws.${pi}" value="${ph.ws}"></label>
+    <label class="ge-wk">Selesai <input class="wk-input" type="number" min="1" max="72" data-edit="phase.we.${pi}" value="${ph.we}"></label>
+  </div>`).join('');
+  let head=`<tr><th class="lbl">Fase / Aktivitas</th>`; for(let w=1;w<=W;w++)head+=`<th>M${w}</th>`; head+='</tr>';
+  let rows='';
+  p.phases.forEach((ph,pi)=>{
+    rows+=`<tr><td class="lbl">${pi+1}. ${esc(ph.title)}</td>`;
+    for(let w=1;w<=W;w++){ if(w>=ph.ws&&w<=ph.we){ const lab=(w===ph.ws)?`<div class="ms">M${ph.ws}–${ph.we}</div>`:''; rows+=`<td><div class="bar" style="background:${ph.color}">${lab}</div></td>`; } else rows+='<td></td>'; }
+    rows+='</tr>';
+  });
+  const msByWeek={}; p.milestones.forEach(m=>{ msByWeek[m.week]=m.label; });
+  rows+=`<tr><td class="lbl" style="color:var(--red)">◆ Milestone</td>`;
+  for(let w=1;w<=W;w++) rows+= msByWeek[w]?`<td class="milestone" title="${esc(msByWeek[w])}"></td>`:'<td></td>';
+  rows+='</tr>';
+  const msEdit=p.milestones.map((m,i)=>`<div class="ms-edit-row">
+    <input class="wk-input" type="number" min="1" max="72" data-edit="ms.week.${i}" value="${m.week}">
+    <input class="ms-label" data-edit="ms.label.${i}" value="${esc(m.label)}" placeholder="Nama milestone">
+    <button class="mini danger" data-action="ms-del" data-i="${i}" title="Hapus">✕</button>
+  </div>`).join('');
+  return `
+  <div class="card">
+    <h2 class="font-display text-2xl text-navy mb-1">Timeline Gantt — Milestone per Minggu</h2>
+    <p class="text-steel text-sm mb-1">Atur minggu mulai/selesai & warna tiap fase — grafik dan total minggu menyesuaikan otomatis. Fase ini sama dengan tab <b>WBS</b> (tersinkron).</p>
+    <div class="gantt-editor">${editor}</div>
+    <div class="gantt-scroll"><table class="gantt">${head}${rows}</table></div>
+    <div class="mt-5">
+      <div class="meta-k text-steel mb-2">Milestone (◆)</div>
+      <div id="ms-list">${msEdit||'<p class="text-steel text-sm">Belum ada milestone.</p>'}</div>
+      <div class="addrow" data-action="ms-add">+ Tambah milestone</div>
+    </div>
+  </div>`;
+}
+
+function tabIzin(p){
+  ensure(p);
+  const list=filteredIzin(p.type);
+  return `
+  <div class="card">
+    <h2 class="font-display text-2xl text-navy mb-1">Checklist Izin & Dokumen</h2>
+    <p class="text-steel text-sm mb-4">Centang yang sudah beres. Banyak perizinan punya lead time mingguan—mulai sedini mungkin. Konteks: regulasi Indonesia (UU Cipta Kerja / SIMBG).</p>
+    <div>
+      ${list.map((it,i)=>{ const on=p.izinDone[i]; return `<label class="chk ${on?'done':''}">
+        <input type="checkbox" data-kind="izin" data-id="${p.id}" data-idx="${i}" ${on?'checked':''}>
+        <span><div class="nm">${esc(it[0])} ${tagHtml(it[2])}</div><div class="ds">${esc(it[1])}</div></span></label>`; }).join('')}
+    </div>
+    <div class="note mt-5"><b>Penting:</b> Sejak 2021 IMB digantikan <b>PBG</b> via SIMBG. <b>SLF</b> wajib sebelum bangunan dipakai. Komersial besar mungkin perlu <b>AMDAL/UKL-UPL</b> & <b>ANDALALIN</b>. Verifikasi ke dinas (PUPR/DPMPTSP) setempat.</div>
+  </div>`;
+}
+
+function tabAgenda(p){
+  ensure(p);
+  return `
+  <div class="card">
+    <div class="flex items-start justify-between gap-3 flex-wrap mb-1">
+      <div><h2 class="font-display text-2xl text-navy mb-1">Agenda Meeting</h2>
+      <p class="text-steel text-sm">Buat agenda per meeting, lalu rinci tiap segmen waktu & poinnya. Klik teks untuk mengedit.</p></div>
+      <button class="btn sm" data-action="mtg-add">+ Tambah meeting</button>
+    </div>
+    ${p.meetings.length?'':'<p class="text-steel text-sm mt-3">Belum ada meeting. Tambahkan satu.</p>'}
+    ${p.meetings.map((mt,mi)=>`<div class="mtg-card">
+      <div class="mtg-head">
+        <span class="mtg-no">${mi+1}</span>
+        <span class="mtg-title" contenteditable data-edit="meeting.title.${mi}" data-ph="Judul meeting">${esc(mt.title)}</span>
+        <input type="date" class="sel-sm" data-edit="meeting.date.${mi}" value="${esc(mt.date||'')}">
+        <button class="mini danger" data-action="mtg-del" data-mi="${mi}" title="Hapus meeting">✕</button>
+      </div>
+      <div class="mtg-body">
+        ${mt.blocks.map((b,bi)=>`<div class="agenda">
+          <div class="agenda-top">
+            <span class="tm" contenteditable data-edit="block.time.${mi}.${bi}" data-ph="00–00 mnt">${esc(b.time)}</span>
+            <span class="tl flex-1" contenteditable data-edit="block.title.${mi}.${bi}" data-ph="Judul segmen">${esc(b.title)}</span>
+            <button class="mini danger sm-x" data-action="block-del" data-mi="${mi}" data-bi="${bi}" title="Hapus segmen">✕</button>
+          </div>
+          <ul>
+            ${b.points.map((pt,pti)=>`<li><span class="flex-1" contenteditable data-edit="point.${mi}.${bi}.${pti}" data-ph="Poin agenda">${esc(pt)}</span><button class="mini danger sm-x" data-action="point-del" data-mi="${mi}" data-bi="${bi}" data-pti="${pti}" title="Hapus">✕</button></li>`).join('')}
+          </ul>
+          <div class="addrow" data-action="point-add" data-mi="${mi}" data-bi="${bi}">+ Tambah poin</div>
+        </div>`).join('')}
+        <div class="addrow" data-action="block-add" data-mi="${mi}">+ Tambah segmen waktu</div>
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function tabRisk(p){
+  ensure(p);
+  const opt=(arr,v)=>arr.map(o=>`<option ${o===v?'selected':''}>${o}</option>`).join('');
+  return `
+  <div class="card">
+    <div class="flex items-start justify-between gap-3 flex-wrap">
+      <div><h2 class="font-display text-2xl text-navy mb-1">Risk Register</h2>
+      <p class="text-steel text-sm mb-4">Edit risiko & mitigasi, tetapkan <b>PIC</b> penanggung jawab. Level dihitung otomatis dari Likelihood × Impact.</p></div>
+      <button class="btn sm" data-action="risk-add">+ Tambah risiko</button>
+    </div>
+    <div class="matrix">
+      <div class="mh"></div><div class="mh">Impact Rendah</div><div class="mh">Impact Sedang</div><div class="mh">Impact Tinggi</div>
+      <div class="mh">Sering</div><div class="cell s-m">Sedang</div><div class="cell s-h">Tinggi</div><div class="cell s-h">Tinggi</div>
+      <div class="mh">Kadang</div><div class="cell s-l">Rendah</div><div class="cell s-m">Sedang</div><div class="cell s-h">Tinggi</div>
+      <div class="mh">Jarang</div><div class="cell s-l">Rendah</div><div class="cell s-l">Rendah</div><div class="cell s-m">Sedang</div>
+    </div>
+    <div style="overflow-x:auto"><table class="data risk-tbl">
+      <tr><th style="width:36px">#</th><th>Risiko</th><th style="width:110px">Likelihood</th><th style="width:110px">Impact</th><th style="width:90px">Level</th><th style="width:130px">PIC</th><th>Mitigasi</th><th style="width:40px"></th></tr>
+      ${p.riskRows.map((r,ri)=>{ const lv=riskLevel(r.like,r.impact); return `<tr>
+        <td>${ri+1}</td>
+        <td><span contenteditable data-edit="risk.title.${ri}" data-ph="Nama risiko" class="font-semibold">${esc(r.title)}</span></td>
+        <td><select class="sel-sm" data-edit="risk.like.${ri}">${opt(LIKE_OPTS,r.like)}</select></td>
+        <td><select class="sel-sm" data-edit="risk.impact.${ri}">${opt(IMPACT_OPTS,r.impact)}</select></td>
+        <td><span class="sev ${lv}">${LVL_NAME[lv]}</span></td>
+        <td><span contenteditable data-edit="risk.pic.${ri}" data-ph="Nama PIC">${esc(r.pic||'')}</span></td>
+        <td><span contenteditable data-edit="risk.mit.${ri}" data-ph="Langkah mitigasi">${esc(r.mit)}</span></td>
+        <td><button class="mini danger sm-x" data-action="risk-del" data-ri="${ri}" title="Hapus">✕</button></td>
+      </tr>`; }).join('')}
+    </table></div>
+  </div>`;
+}
+
+function tabFolder(p){
+  const code=projectCode(p.name);
+  const tree=`<span class="f">${code}_${esc(p.name.replace(/\s+/g,''))}/</span>
+├── <span class="f">00_ADMIN/</span>            <span class="c"># kontrak, SPK, NDA, invoice, korespondensi</span>
+├── <span class="f">01_BRIEF_RISET/</span>      <span class="c"># brief klien, moodboard, referensi, survei tapak</span>
+├── <span class="f">02_LEGAL_IZIN/</span>       <span class="c"># sertifikat tanah, KRK, PBG, SLF, dok lingkungan</span>
+├── <span class="f">03_DESAIN/</span>
+│   ├── <span class="f">SD_Skematik/</span>
+│   ├── <span class="f">DD_Pengembangan/</span>
+│   └── <span class="f">3D_Render/</span>
+├── <span class="f">04_GAMBAR_KERJA/</span>     <span class="c"># DED arsitektur, struktur, MEP, RKS</span>
+│   ├── <span class="f">Arsitektur/</span>
+│   ├── <span class="f">Struktur/</span>
+│   └── <span class="f">MEP/</span>
+├── <span class="f">05_RAB_BOQ/</span>          <span class="c"># cost plan, BoQ, RAB, dokumen tender</span>
+├── <span class="f">06_KONSULTAN/</span>        <span class="c"># file dari konsultan struktur, ME, QS</span>
+├── <span class="f">07_KONSTRUKSI/</span>       <span class="c"># shop drawing, laporan lapangan, VO, foto progres</span>
+├── <span class="f">08_PRESENTASI/</span>       <span class="c"># materi meeting klien, notulen</span>
+├── <span class="f">09_SERAH_TERIMA/</span>     <span class="c"># as-built, manual O&M, foto final, berita acara</span>
+└── <span class="f">00_ARCHIVE/</span>          <span class="c"># revisi lama — jangan dihapus</span>`;
+  return `
+  <div class="card">
+    <h2 class="font-display text-2xl text-navy mb-1">Struktur Folder Standar</h2>
+    <p class="text-steel text-sm mb-4">Pola penamaan folder: <span class="font-mono text-navy">[KodeProyek]_[NamaProyek]</span> — kode otomatis: <b>${code}</b></p>
+    <div class="tree">${tree}</div>
+    <div class="note mt-4"><b>Konvensi file:</b> <span class="font-mono">YYMMDD_[Tipe]_[Deskripsi]_[Rev].ext</span> — contoh <span class="font-mono">260604_DED_DenahLt1_R02.pdf</span>. Pindahkan revisi lama ke <b>00_ARCHIVE</b>.</div>
+  </div>`;
+}
+
+/* ---- apply an inline edit to the data model ---- */
+function applyEdit(p,key,val){
+  const a=key.split('.');
+  try{
+    switch(a[0]){
+      case 'phase':{ const ph=p.phases[+a[2]]; if(!ph)break; if(a[1]==='ws')ph.ws=clampWeek(val); else if(a[1]==='we')ph.we=clampWeek(val); else if(a[1]==='color')ph.color=val; else ph.title=val; if(ph.we<ph.ws)ph.we=ph.ws; break; }
+      case 'item':{ const ph=p.phases[+a[2]]; if(ph&&ph.items[+a[3]])ph.items[+a[3]].text=val; break; }
+      case 'ms':{ const m=p.milestones[+a[2]]; if(!m)break; if(a[1]==='week')m.week=clampWeek(val); else m.label=val; break; }
+      case 'meeting':{ const m=p.meetings[+a[2]]; if(m)m[a[1]]=val; break; }
+      case 'block':{ const m=p.meetings[+a[2]]; if(m&&m.blocks[+a[3]])m.blocks[+a[3]][a[1]]=val; break; }
+      case 'point':{ const m=p.meetings[+a[1]]; if(m&&m.blocks[+a[2]])m.blocks[+a[2]].points[+a[3]]=val; break; }
+      case 'risk':{ const r=p.riskRows[+a[2]]; if(r)r[a[1]]=val; break; }
+    }
+  }catch(e){ console.warn('applyEdit',e); }
+}
+
+/* =========================================================================
+   ABOUT
+   ========================================================================= */
+function renderAbout(){
+  const clients=[...new Set(state.projects.map(p=>p.client).filter(c=>c&&c.toLowerCase()!=='private'))];
+  view().innerHTML=`
+  <div class="max-w-[1240px] mx-auto px-6 py-10 fade-in">
+    <div class="grid md:grid-cols-[230px_1fr] gap-10">
+      <aside class="md:sticky md:top-[88px] self-start">
+        <h1 class="font-display text-[30px] font-light text-navy leading-none">Who We Are</h1>
+        <div class="w-12 h-[2px] bg-royal mt-3 mb-7"></div>
+        <div class="flex flex-col">
+          <a href="#about-natar" class="sidelink">About NataR</a>
+          <a href="#about-expertise" class="sidelink">Expertise</a>
+          <a href="#about-timeline" class="sidelink">Perjalanan</a>
+          <a href="#about-clients" class="sidelink">List of Clients</a>
+        </div>
+      </aside>
+      <section class="max-w-3xl">
+        <div id="about-natar">
+          <h2 class="font-display text-royal font-light" style="font-size:clamp(30px,4vw,44px)">${esc(STUDIO.tagline)}</h2>
+          <p class="text-[17px] text-steel leading-relaxed mt-5">${esc(STUDIO.about)}</p>
+          <p class="text-sm text-steel mt-3">${esc(STUDIO.full)} · ${esc(STUDIO.city)}</p>
+        </div>
+        <div id="about-expertise" class="mt-12">
+          <div class="meta-k text-steel mb-4">Expertise</div>
+          <div class="grid sm:grid-cols-2 gap-3">${EXPERTISE.map(x=>`<div class="border border-line rounded-xl px-4 py-3 text-navy font-medium flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-royal"></span>${esc(x)}</div>`).join('')}</div>
+        </div>
+        <div id="about-timeline" class="mt-14">
+          <div class="meta-k text-steel mb-2">Perjalanan</div>
+          <div class="border-t border-line">${TIMELINE.map(([y,t])=>`<div class="grid grid-cols-[120px_1fr] gap-4 items-center py-5 border-b border-line"><div class="font-display text-royal font-light text-[34px] leading-none">${y}</div><div class="text-[15px] text-navy leading-relaxed">${t}</div></div>`).join('')}</div>
+        </div>
+        <div id="about-clients" class="mt-14">
+          <div class="meta-k text-steel mb-4">List of Clients <span class="text-royal">(otomatis dari data proyek)</span></div>
+          <div class="flex flex-wrap gap-2">${clients.length?clients.map(c=>`<span class="border border-line rounded-full px-4 py-2 text-sm text-navy">${esc(c)}</span>`).join(''):'<span class="text-steel text-sm">Belum ada klien terdaftar.</span>'}</div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* =========================================================================
+   ADMIN (Kelola)
+   ========================================================================= */
+function renderAdmin(){
+  const total=state.projects.length;
+  const byStatus=STATUSES.map(s=>[s,state.projects.filter(p=>p.status===s).length]);
+  view().innerHTML=`
+  <div class="max-w-[1240px] mx-auto px-6 py-10 fade-in">
+    <div class="flex flex-wrap items-end justify-between gap-4 border-b border-line pb-5 mb-7">
+      <div><h1 class="font-display text-[34px] font-light text-navy leading-none">Kelola Proyek</h1>
+      <p class="text-steel text-sm mt-2">Tambah, ubah, hapus, urutkan proyek tanpa menyentuh kode. Nomor & halaman proyek terbuat otomatis. Detail tiap proyek (WBS, Gantt, agenda, risiko) diedit langsung di halaman proyeknya.</p></div>
+      <div class="flex flex-wrap gap-2 noprint">
+        <button class="btn" data-action="add">+ Tambah Proyek</button>
+        <button class="btn ghost" data-action="export">⭳ Export JSON</button>
+        <button class="btn ghost" data-action="import">⭱ Import JSON</button>
+        <button class="btn ghost" data-action="reset" style="color:#b23">↻ Reset</button>
+        <input type="file" id="import-file" accept="application/json" class="hidden">
+      </div>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-7">${kpi(total,'Total proyek')}${byStatus.map(([s,n])=>kpi(n,s)).join('')}</div>
+    <div class="card !p-0 overflow-hidden">
+      <div style="overflow-x:auto"><table class="data">
+        <tr><th style="width:60px">No</th><th>Proyek</th><th>Kategori</th><th>Status</th><th>Progres</th><th>Klien</th><th class="text-right" style="width:210px">Aksi</th></tr>
+        ${state.projects.map((p,i)=>{ const wp=wbsProgress(p); return `<tr>
+          <td class="font-display text-xl text-royal">${pad(i+1)}</td>
+          <td><div class="font-semibold text-navy">${esc(p.name)}</div><div class="text-xs text-steel">${esc(p.location||'')}</div></td>
+          <td><span class="text-xs text-steel">${esc(p.category)}</span><br><span class="tag t-${p.type}">${TYPE_LABEL[p.type]}</span></td>
+          <td><span class="st st-${p.status}">${p.status}</span></td>
+          <td><div class="flex items-center gap-2"><div class="w-16 h-1.5 bg-soft rounded-full"><div class="h-1.5 rounded-full bg-royal" style="width:${wp.pct}%"></div></div><span class="text-xs text-steel">${wp.pct}%</span></div></td>
+          <td class="text-sm">${esc(p.client||'—')}</td>
+          <td class="text-right whitespace-nowrap">
+            <button class="mini" data-action="up" data-id="${p.id}" title="Naik" ${i===0?'disabled style=opacity:.3':''}>↑</button>
+            <button class="mini" data-action="down" data-id="${p.id}" title="Turun" ${i===total-1?'disabled style=opacity:.3':''}>↓</button>
+            <a class="btn ghost sm" href="#/project/${p.id}">Buka</a>
+            <button class="btn ghost sm" data-action="edit" data-id="${p.id}">Edit</button>
+            <button class="btn ghost sm" data-action="del" data-id="${p.id}" style="color:#b23">Hapus</button>
+          </td>
+        </tr>`; }).join('')}
+      </table></div>
+    </div>
+    <div class="note mt-5"><b>Penyimpanan:</b> data tersimpan di browser ini (localStorage). Gunakan <b>Export JSON</b> untuk backup / pindah perangkat, dan <b>Import JSON</b> untuk memuat kembali. <b>Reset</b> mengembalikan ke 6 proyek contoh. Gambar cover ikut tersimpan & terekspor.</div>
+  </div>`;
+}
+
+/* ---- project form modal (dengan upload cover) ---- */
+let formCover='';
+function openForm(id){
+  const editing=!!id;
+  const p=editing?state.projects.find(x=>x.id===id):newProject({name:''});
+  formCover = editing ? (p.cover||'') : '';
+  const opt=(arr,val,gv,gl)=>arr.map(o=>{const v=gv(o),l=gl(o);return `<option value="${esc(v)}" ${v==val?'selected':''}>${esc(l)}</option>`;}).join('');
+  $('#modal').innerHTML=`
+  <div class="backdrop" data-action="close-modal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <form id="proj-form" class="p-7">
+        <div class="flex items-center justify-between mb-5">
+          <h3 class="font-display text-2xl text-navy">${editing?'Edit Info Proyek':'Tambah Proyek'}</h3>
+          <button type="button" class="text-steel hover:text-navy text-2xl leading-none" data-action="close-modal">×</button>
+        </div>
+        <input type="hidden" name="pid" value="${editing?p.id:''}">
+        <div class="grid sm:grid-cols-2 gap-4">
+          <div class="field sm:col-span-2"><label>Nama proyek *</label><input name="name" required value="${esc(p.name)}" placeholder="mis. Ambu Bata Villa"></div>
+          <div class="field"><label>Kategori</label><select name="category">${opt(CATEGORIES,p.category,c=>c,c=>c)}</select></div>
+          <div class="field"><label>Tipe (untuk WBS/izin)</label><select name="type">${opt(TYPES,p.type,t=>t.v,t=>t.l)}</select></div>
+          <div class="field"><label>Lokasi</label><input name="location" value="${esc(p.location)}" placeholder="Bandung, Indonesia"></div>
+          <div class="field"><label>Klien</label><input name="client" value="${esc(p.client)}" placeholder="PT / Pemerintah / Private"></div>
+          <div class="field"><label>Tahun</label><input name="year" type="number" value="${esc(p.year)}"></div>
+          <div class="field"><label>Status</label><select name="status">${opt(STATUSES,p.status,s=>s,s=>s)}</select></div>
+          <div class="field"><label>Nilai kontrak</label><input name="value" value="${esc(p.value)}" placeholder="Rp …"></div>
+          <div class="field"><label>Deadline serah</label><input name="deadline" value="${esc(p.deadline)}" placeholder="Q4 2025 / 2027"></div>
+          <div class="field"><label>Arsitek utama</label><input name="architect" value="${esc(p.architect)}"></div>
+          <div class="field"><label>Tim</label><input name="team" value="${esc(p.team)}" placeholder="drafter, konsultan…"></div>
+          <div class="field sm:col-span-2"><label>Gambar sampul (cover)</label>
+            <div class="cover-up">
+              <div class="cover-prev" id="cover-prev">${p.cover?`<img src="${p.cover}">`:'<span>Belum ada gambar</span>'}</div>
+              <div class="cover-actions">
+                <label class="btn ghost sm" style="cursor:pointer">⭱ Unggah gambar<input type="file" id="cover-file" accept="image/*" class="hidden"></label>
+                <button type="button" class="btn ghost sm" data-action="cover-clear">Hapus gambar</button>
+                <p class="cover-hint">JPG/PNG. Otomatis dikecilkan (maks 1200px) & disimpan di browser — tampil di kartu portofolio & header proyek.</p>
+              </div>
+            </div>
+          </div>
+          <div class="field sm:col-span-2"><label>Deskripsi</label><textarea name="description" rows="4" placeholder="Gagasan & konteks proyek…">${esc(p.description)}</textarea></div>
+        </div>
+        <div class="flex justify-end gap-2 mt-6">
+          <button type="button" class="btn ghost" data-action="close-modal">Batal</button>
+          <button type="submit" class="btn">${editing?'Simpan Perubahan':'Tambah Proyek'}</button>
+        </div>
+      </form>
+    </div>
+  </div>`;
+}
+function closeModal(){ $('#modal').innerHTML=''; }
+
+function fileToCover(file,cb){
+  const fr=new FileReader();
+  fr.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=1200; let w=img.width,h=img.height; if(w>max){ h=Math.round(h*max/w); w=max; } const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h); cb(c.toDataURL('image/jpeg',0.82)); }; img.onerror=()=>toast('Gagal membaca gambar'); img.src=fr.result; };
+  fr.onerror=()=>toast('Gagal membaca file'); fr.readAsDataURL(file);
+}
+function handleCoverFile(file){ if(!file.type.startsWith('image/')){ toast('File harus berupa gambar'); return; } fileToCover(file,durl=>{ formCover=durl; const pv=$('#cover-prev'); if(pv)pv.innerHTML=`<img src="${durl}">`; toast('Gambar dimuat'); }); }
+
+function saveForm(form){
+  const fd=new FormData(form); const d=Object.fromEntries(fd.entries());
+  const editId=(d.pid||'').trim(); delete d.pid;
+  if(!d.name.trim()){ toast('Nama proyek wajib diisi'); return; }
+  d.year=parseInt(d.year)||new Date().getFullYear();
+  d.cover=formCover;
+  if(editId){ const p=state.projects.find(x=>x.id===editId); Object.assign(p,d); ensure(p); toast('Perubahan tersimpan'); }
+  else { const p=newProject(d); state.projects.push(p); toast('Proyek ditambahkan'); }
+  saveState(); closeModal(); renderAdmin();
+}
+function delProject(id){ const p=state.projects.find(x=>x.id===id); if(!p)return; if(!confirm(`Hapus proyek "${p.name}"? Tidak bisa dibatalkan (kecuali ada backup JSON).`))return; state.projects=state.projects.filter(x=>x.id!==id); saveState(); renderAdmin(); toast('Proyek dihapus'); }
+function move(id,dir){ const i=state.projects.findIndex(x=>x.id===id),j=i+dir; if(j<0||j>=state.projects.length)return; const a=state.projects; [a[i],a[j]]=[a[j],a[i]]; saveState(); renderAdmin(); }
+
+function exportJSON(){ const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`natar-proyek-${new Date().toISOString().slice(0,10)}.json`; a.click(); URL.revokeObjectURL(a.href); toast('Data diekspor'); }
+function importJSON(file){ const fr=new FileReader(); fr.onload=()=>{ try{ const obj=JSON.parse(fr.result); if(!obj||!Array.isArray(obj.projects))throw 0; state={projects:obj.projects.map(normalize)}; saveState(); renderAdmin(); toast('Data berhasil diimpor'); }catch(e){ toast('File JSON tidak valid'); } }; fr.readAsText(file); }
+function resetData(){ if(!confirm('Reset ke 6 proyek contoh? Semua data saat ini hilang (kecuali sudah di-Export).'))return; state={projects:SEED.map(normalize)}; saveState(); renderAdmin(); toast('Data di-reset'); }
+
+/* =========================================================================
+   ROUTER
+   ========================================================================= */
+function router(){
+  const hash=location.hash.replace(/^#\/?/,''); const [seg,id]=hash.split('/'); const s=seg||'works';
+  renderNav(s==='project'?'works':s);
+  if(s==='project'&&id) renderProject(id);
+  else if(s==='about') renderAbout();
+  else if(s==='admin') renderAdmin();
+  else renderWorks();
+  if(s!=='about') window.scrollTo({top:0});
+}
+
+/* =========================================================================
+   EVENTS (delegation)
+   ========================================================================= */
+function rerenderTab(){ const p=currentProject(); if(p) paintTab(p); }
+
+document.addEventListener('click', e=>{
+  const a=e.target.closest('[data-action]'); if(!a) return;
+  const act=a.dataset.action; const p=currentProject();
+  switch(act){
+    case 'filter':
+      worksFilter=a.dataset.cat;
+      document.querySelectorAll('#cat-list .sidelink').forEach(x=>x.classList.toggle('active',x.dataset.cat===worksFilter));
+      paintGrid(); break;
+    case 'tab':
+      projTab=a.dataset.tab;
+      document.querySelectorAll('#ptabs .ptab').forEach(x=>x.classList.toggle('active',x.dataset.tab===projTab));
+      if(p) paintTab(p); break;
+    case 'phase-toggle': {
+      if(e.target.isContentEditable||e.target.closest('button')) break;
+      const pi=+a.dataset.pi; if(wbsOpen.has(pi))wbsOpen.delete(pi); else wbsOpen.add(pi);
+      a.parentElement.querySelector('.wbs-body').classList.toggle('open'); break; }
+    case 'phase-add': if(p){ const last=p.phases[p.phases.length-1]; const ws=last?Math.min(last.we+1,72):1; p.phases.push({id:'ph-'+rid(),title:'Fase baru',ws,we:Math.min(ws+1,72),color:'#2A4C8A',items:[]}); wbsOpen.add(p.phases.length-1); saveState(); rerenderTab(); } break;
+    case 'phase-del': if(p){ const pi=+a.dataset.pi; if(confirm('Hapus fase ini beserta seluruh deliverable-nya?')){ p.phases.splice(pi,1); wbsOpen=new Set([0]); saveState(); rerenderTab(); refreshProgress(p); } } break;
+    case 'item-add': if(p){ p.phases[+a.dataset.pi].items.push({text:'Deliverable baru',done:false,tag:'all'}); saveState(); rerenderTab(); refreshProgress(p); } break;
+    case 'item-del': if(p){ p.phases[+a.dataset.pi].items.splice(+a.dataset.ii,1); saveState(); rerenderTab(); refreshProgress(p); } break;
+    case 'item-tag': if(p){ const order=['all','rumah','komersial','interior','master']; const it=p.phases[+a.dataset.pi].items[+a.dataset.ii]; it.tag=order[(order.indexOf(tagNorm(it.tag))+1)%order.length]; saveState(); rerenderTab(); } break;
+    case 'ms-add': if(p){ p.milestones.push({week:Math.min(projWeeks(p),72),label:'Milestone'}); saveState(); rerenderTab(); } break;
+    case 'ms-del': if(p){ p.milestones.splice(+a.dataset.i,1); saveState(); rerenderTab(); } break;
+    case 'mtg-add': if(p){ p.meetings.push({id:'mtg-'+rid(),title:'Meeting baru',date:'',blocks:[{time:'',title:'Segmen 1',points:['']}]}); saveState(); rerenderTab(); } break;
+    case 'mtg-del': if(p){ if(confirm('Hapus meeting ini?')){ p.meetings.splice(+a.dataset.mi,1); saveState(); rerenderTab(); } } break;
+    case 'block-add': if(p){ p.meetings[+a.dataset.mi].blocks.push({time:'',title:'Segmen baru',points:['']}); saveState(); rerenderTab(); } break;
+    case 'block-del': if(p){ p.meetings[+a.dataset.mi].blocks.splice(+a.dataset.bi,1); saveState(); rerenderTab(); } break;
+    case 'point-add': if(p){ p.meetings[+a.dataset.mi].blocks[+a.dataset.bi].points.push(''); saveState(); rerenderTab(); } break;
+    case 'point-del': if(p){ p.meetings[+a.dataset.mi].blocks[+a.dataset.bi].points.splice(+a.dataset.pti,1); saveState(); rerenderTab(); } break;
+    case 'risk-add': if(p){ p.riskRows.push({title:'Risiko baru',like:'Kadang',impact:'Sedang',mit:'',pic:''}); saveState(); rerenderTab(); } break;
+    case 'risk-del': if(p){ p.riskRows.splice(+a.dataset.ri,1); saveState(); rerenderTab(); } break;
+    case 'cover-clear': { formCover=''; const pv=$('#cover-prev'); if(pv)pv.innerHTML='<span>Belum ada gambar</span>'; break; }
+    case 'add': openForm(); break;
+    case 'edit': openForm(a.dataset.id); break;
+    case 'del': delProject(a.dataset.id); break;
+    case 'up': move(a.dataset.id,-1); break;
+    case 'down': move(a.dataset.id,1); break;
+    case 'export': exportJSON(); break;
+    case 'import': $('#import-file').click(); break;
+    case 'reset': resetData(); break;
+    case 'close-modal': closeModal(); break;
+  }
+});
+
+document.addEventListener('input', e=>{
+  const t=e.target;
+  if(t.id==='works-search'){ worksSearch=t.value.toLowerCase(); paintGrid(); return; }
+  if(t.isContentEditable && t.dataset.edit){ const p=currentProject(); if(!p)return; applyEdit(p,t.dataset.edit,t.innerText.trim()); saveSoon(); }
+});
+
+document.addEventListener('change', e=>{
+  const t=e.target;
+  const c=t.closest&&t.closest('input[type=checkbox][data-kind]');
+  if(c){ const p=state.projects.find(x=>x.id===c.dataset.id); if(!p)return; ensure(p);
+    if(c.dataset.kind==='wbs'){ const ph=p.phases[+c.dataset.pi]; if(ph&&ph.items[+c.dataset.ii]){ ph.items[+c.dataset.ii].done=c.checked; c.closest('.wbs-item').classList.toggle('done',c.checked); const cv=document.querySelector(`[data-cv="${c.dataset.pi}"]`); if(cv)cv.textContent=ph.items.filter(x=>x.done).length+'/'+ph.items.length; refreshProgress(p); } }
+    else if(c.dataset.kind==='izin'){ p.izinDone[+c.dataset.idx]=c.checked; c.closest('.chk').classList.toggle('done',c.checked); }
+    saveState(); return; }
+  if(t.id==='import-file' && t.files[0]){ importJSON(t.files[0]); t.value=''; return; }
+  if(t.id==='cover-file' && t.files[0]){ handleCoverFile(t.files[0]); t.value=''; return; }
+  if(t.matches('input[data-edit]')||t.matches('select[data-edit]')){
+    const p=currentProject(); if(!p)return;
+    applyEdit(p,t.dataset.edit,t.value); saveState();
+    const [k,f]=t.dataset.edit.split('.');
+    if((k==='phase'&&['ws','we','color'].includes(f))||(k==='ms'&&f==='week')||(k==='risk'&&['like','impact'].includes(f))) paintTab(p);
+  }
+});
+
+document.addEventListener('submit', e=>{ if(e.target.id==='proj-form'){ e.preventDefault(); saveForm(e.target); } });
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape'){ closeModal(); return; }
+  if(e.key==='Enter' && e.target.isContentEditable && !e.shiftKey){ e.preventDefault(); e.target.blur(); }
+});
+
+/* =========================================================================
+   INIT
+   ========================================================================= */
+$('#yr').textContent=new Date().getFullYear();
+$('#foot-full').textContent=STUDIO.full+' — '+STUDIO.alias+'.';
+loadState();
+window.addEventListener('hashchange', router);
+if(!location.hash) location.hash='#/works';
+router();
+</script>
+</body>
+</html>

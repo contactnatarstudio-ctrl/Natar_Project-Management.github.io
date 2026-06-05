@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Manajemen Proyek — Studio Arsitektur</title>
+<style>
+  :root{
+    --bg:#0f1115; --panel:#171a21; --panel2:#1e222b; --line:#2a2f3a;
+    --txt:#e8eaed; --muted:#9aa3b2; --accent:#e0a458; --accent2:#5b8def;
+    --green:#3fb950; --yellow:#d2a73a; --red:#e05656; --blue:#5b8def;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5}
+  header{background:linear-gradient(135deg,#1c2029,#11141a);padding:24px 28px;border-bottom:2px solid var(--accent)}
+  header h1{margin:0;font-size:22px;letter-spacing:.3px}
+  header p{margin:4px 0 0;color:var(--muted);font-size:13px}
+  .wrap{max-width:1200px;margin:0 auto;padding:24px 20px 80px}
+  .tabs{display:flex;flex-wrap:wrap;gap:6px;margin:18px 0 22px}
+  .tab{padding:9px 16px;background:var(--panel);border:1px solid var(--line);border-radius:8px;cursor:pointer;color:var(--muted);font-weight:600;font-size:13px}
+  .tab.active{background:var(--accent);color:#1a1205;border-color:var(--accent)}
+  .panel{display:none;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:22px;margin-bottom:18px}
+  .panel.active{display:block}
+  h2{font-size:17px;margin:0 0 4px;color:var(--accent)}
+  h2 .sub{font-size:12px;color:var(--muted);font-weight:400;display:block;margin-top:2px}
+  table{width:100%;border-collapse:collapse;margin-top:14px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top;font-size:13px}
+  th{color:var(--muted);font-weight:600;text-transform:uppercase;font-size:11px;letter-spacing:.4px}
+  tr:hover td{background:#1b1f28}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-top:8px}
+  .field{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+  .field [contenteditable],.field input{background:transparent;border:none;color:var(--txt);font-size:15px;font-weight:600;width:100%;outline:none}
+  [contenteditable]{outline:none}
+  [contenteditable]:focus{background:#232834;border-radius:4px}
+  .badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+  .b-todo{background:#2a2f3a;color:#9aa3b2}.b-prog{background:#23375e;color:#9cc2ff}.b-done{background:#1f4429;color:#76d98c}
+  .pill{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700}
+  .p-h{background:#4a1f1f;color:#ff9b9b}.p-m{background:#4a3c1a;color:#ffd479}.p-l{background:#1f3a26;color:#8fe0a3}
+  /* GANTT */
+  .gantt{overflow-x:auto;margin-top:16px;border:1px solid var(--line);border-radius:10px}
+  .gtable{border-collapse:collapse;min-width:1100px;width:100%}
+  .gtable th,.gtable td{border:1px solid var(--line);padding:0;font-size:11px}
+  .gtable .lbl{padding:8px 10px;font-weight:600;white-space:nowrap;background:var(--panel2);position:sticky;left:0;z-index:2;min-width:230px}
+  .gtable thead th{background:var(--panel2);text-align:center;min-width:30px;padding:6px 2px;color:var(--muted)}
+  .gcell{height:30px;position:relative}
+  .bar{position:absolute;top:5px;bottom:5px;border-radius:4px;display:flex;align-items:center;padding:0 6px;font-size:10px;color:#13161c;font-weight:700;white-space:nowrap;overflow:hidden}
+  .ms{color:var(--accent);font-size:14px}
+  .note{background:var(--panel2);border-left:3px solid var(--accent2);padding:10px 14px;border-radius:6px;color:var(--muted);font-size:12px;margin-top:14px}
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+  button.act{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:7px 13px;border-radius:7px;cursor:pointer;font-size:12px;font-weight:600}
+  button.act:hover{border-color:var(--accent)}
+  .delcol{width:34px}
+  .delcell{text-align:center}
+  button.delbtn{background:transparent;border:1px solid var(--line);color:var(--muted);width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:14px;line-height:1;font-weight:700}
+  button.delbtn:hover{border-color:var(--red);color:var(--red);background:#2a1a1a}
+  .chk{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+  .chk input{margin-top:3px;width:16px;height:16px;accent-color:var(--green)}
+  .chk .d{font-size:11px;color:var(--muted)}
+  .legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px;font-size:12px;color:var(--muted)}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:12px;height:12px;border-radius:3px;display:inline-block}
+  ul.clean{margin:8px 0;padding-left:18px}ul.clean li{margin:4px 0}
+  .small{font-size:12px;color:var(--muted)}
+  .saved{font-size:11px;color:var(--green);margin-left:8px}
+</style>
+</head>
+<body>
+<header>
+  <h1>🏛️ Dashboard Manajemen Proyek — Studio Arsitektur</h1>
+  <p>Full-service · Template siap pakai · Klik teks untuk edit · Tersimpan otomatis di browser</p>
+</header>
+<div class="wrap">
+
+  <div class="tabs">
+    <div class="tab active" data-t="info">📋 Info Proyek</div>
+    <div class="tab" data-t="wbs">🧩 WBS</div>
+    <div class="tab" data-t="gantt">📊 Timeline Gantt</div>
+    <div class="tab" data-t="izin">📑 Checklist Izin</div>
+    <div class="tab" data-t="meeting">🤝 Agenda Meeting</div>
+    <div class="tab" data-t="risk">⚠️ Risk Register</div>
+  </div>
+
+  <!-- ============ INFO ============ -->
+  <div class="panel active" id="info">
+    <h2>Informasi Proyek <span class="sub">Data contoh — klik untuk ganti dengan data asli</span></h2>
+    <div class="grid" style="margin-top:14px">
+      <div class="field"><label>Nama Klien</label><div contenteditable>Bpk. Andi Wijaya (CONTOH)</div></div>
+      <div class="field"><label>Kode Proyek</label><div contenteditable>AW-2026-01</div></div>
+      <div class="field"><label>Tipe Proyek</label><div contenteditable>Rumah Tinggal 2 Lantai</div></div>
+      <div class="field"><label>Lokasi</label><div contenteditable>Jl. Mawar No. 12, Bandung</div></div>
+      <div class="field"><label>Luas Lahan / Bangunan</label><div contenteditable>200 m² / 280 m²</div></div>
+      <div class="field"><label>Nilai Kontrak (Fee Desain)</label><div contenteditable>Rp 350.000.000</div></div>
+      <div class="field"><label>Tanggal Mulai</label><div contenteditable>8 Juni 2026</div></div>
+      <div class="field"><label>Deadline Serah Terima</label><div contenteditable>31 Desember 2026</div></div>
+      <div class="field"><label>Lingkup Layanan</label><div contenteditable>Full Service (Konsep → DED → Izin → Pengawasan)</div></div>
+    </div>
+
+    <h2 style="margin-top:24px">Tim Proyek</h2>
+    <table>
+      <thead><tr><th>Peran</th><th>Nama</th><th>Tanggung Jawab</th><th>Kontak</th></tr></thead>
+      <tbody>
+        <tr><td>Arsitek Utama / PM</td><td contenteditable>[Nama]</td><td contenteditable>Konsep, koordinasi, klien</td><td contenteditable>[HP/email]</td></tr>
+        <tr><td>Drafter</td><td contenteditable>[Nama]</td><td contenteditable>Gambar kerja & DED</td><td contenteditable>[HP/email]</td></tr>
+        <tr><td>Konsultan Struktur</td><td contenteditable>[Nama]</td><td contenteditable>Perhitungan & gambar struktur</td><td contenteditable>[HP/email]</td></tr>
+        <tr><td>Konsultan ME/Plumbing</td><td contenteditable>[Nama]</td><td contenteditable>Mekanikal, elektrikal, plumbing</td><td contenteditable>[HP/email]</td></tr>
+        <tr><td>Pengawas Lapangan</td><td contenteditable>[Nama]</td><td contenteditable>Pengawasan konstruksi & QC</td><td contenteditable>[HP/email]</td></tr>
+        <tr><td>Estimator / QS</td><td contenteditable>[Nama]</td><td contenteditable>RAB & RKS</td><td contenteditable>[HP/email]</td></tr>
+      </tbody>
+    </table>
+    <div class="toolbar">
+      <button class="act" onclick="addRow(this)">+ Tambah baris tim</button>
+      <button class="act" onclick="resetAll()">↺ Reset ke data contoh</button>
+      <span class="saved" id="saveMsg"></span>
+    </div>
+  </div>
+
+  <!-- ============ WBS ============ -->
+  <div class="panel" id="wbs">
+    <h2>Work Breakdown Structure (WBS) <span class="sub">Fase → Deliverable → Status</span></h2>
+    <table id="wbsTable">
+      <thead><tr><th style="width:55px">No</th><th>Fase / Paket Pekerjaan</th><th>Deliverable Utama</th><th style="width:110px">PIC</th><th style="width:110px">Status</th></tr></thead>
+      <tbody>
+        <tr><td>1.0</td><td contenteditable><b>Persiapan & Administrasi</b></td><td contenteditable>Kontrak ditandatangani, SPK, jadwal kerja, akses Drive</td><td contenteditable>PM</td><td>${badge('done')}</td></tr>
+        <tr><td>2.0</td><td contenteditable><b>Brief & Pengumpulan Data</b></td><td contenteditable>Brief klien, hasil survey & pengukuran, data tapak, foto eksisting, KRK</td><td contenteditable>PM/Drafter</td><td>${badge('prog')}</td></tr>
+        <tr><td>3.0</td><td contenteditable><b>Konsep Desain (SD)</b></td><td contenteditable>Zoning, blockplan, sketsa konsep, moodboard, presentasi konsep</td><td contenteditable>Arsitek</td><td>${badge('todo')}</td></tr>
+        <tr><td>4.0</td><td contenteditable><b>Pengembangan Desain (DD)</b></td><td contenteditable>Denah-tampak-potongan terskala, 3D/render, skema material</td><td contenteditable>Arsitek/Drafter</td><td>${badge('todo')}</td></tr>
+        <tr><td>5.0</td><td contenteditable><b>DED & Gambar Kerja</b></td><td contenteditable>Gambar kerja Arsitektur, Struktur, MEP lengkap + detail</td><td contenteditable>Drafter/Konsultan</td><td>${badge('todo')}</td></tr>
+        <tr><td>6.0</td><td contenteditable><b>RAB & RKS</b></td><td contenteditable>Bill of Quantity, RAB, Rencana Kerja & Syarat, spesifikasi teknis</td><td contenteditable>QS</td><td>${badge('todo')}</td></tr>
+        <tr><td>7.0</td><td contenteditable><b>Perizinan</b></td><td contenteditable>PBG terbit, KRK, dokumen pendukung; SLF di akhir konstruksi</td><td contenteditable>PM</td><td>${badge('todo')}</td></tr>
+        <tr><td>8.0</td><td contenteditable><b>Tender / Pemilihan Kontraktor</b></td><td contenteditable>Dokumen tender, evaluasi penawaran, rekomendasi kontraktor</td><td contenteditable>PM/QS</td><td>${badge('todo')}</td></tr>
+        <tr><td>9.0</td><td contenteditable><b>Konstruksi & Pengawasan Berkala</b></td><td contenteditable>Laporan pengawasan mingguan, shop drawing approval, berita acara, QC</td><td contenteditable>Pengawas</td><td>${badge('todo')}</td></tr>
+        <tr><td>10.0</td><td contenteditable><b>Serah Terima</b></td><td contenteditable>As-built drawing, SLF, manual & garansi, dokumentasi final, BAST</td><td contenteditable>PM</td><td>${badge('todo')}</td></tr>
+      </tbody>
+    </table>
+    <div class="toolbar">
+      <button class="act" onclick="addRow(this)">+ Tambah fase</button>
+      <button class="act" onclick="resetPanel('wbs')">↺ Reset WBS ke contoh</button>
+    </div>
+    <div class="note">Tip: untuk proyek <b>komersial</b> tambahkan analisis TGB/IMB komersial & AMDAL/UKL-UPL; <b>interior</b> fokus 3.0–6.0 + fabrikasi furniture; <b>masterplan</b> tambahkan studi kawasan, siteplan makro, & perizinan tata ruang.</div>
+  </div>
+
+  <!-- ============ GANTT ============ -->
+  <div class="panel" id="gantt">
+    <h2>Timeline Gantt — Milestone per Minggu <span class="sub">29 minggu · Edit start/durasi di tabel kontrol</span></h2>
+    <div class="legend">
+      <span><i class="dot" style="background:#e0a458"></i>Desain</span>
+      <span><i class="dot" style="background:#5b8def"></i>Perizinan</span>
+      <span><i class="dot" style="background:#3fb950"></i>Konstruksi</span>
+      <span><i class="dot" style="background:#b06be0"></i>Admin/Serah Terima</span>
+      <span><i class="ms">◆</i> Milestone</span>
+    </div>
+    <div class="gantt"><table class="gtable" id="ganttTable"></table></div>
+    <div class="note">Bar otomatis tergambar dari kolom <b>Mulai (minggu)</b> & <b>Durasi</b>. Ubah angkanya untuk menggeser jadwal. Tabel kontrol di bawah.</div>
+
+    <h2 style="margin-top:22px">Kontrol Jadwal</h2>
+    <table id="ctrlTable">
+      <thead><tr><th>Aktivitas</th><th style="width:90px">Mulai (mgg)</th><th style="width:90px">Durasi</th><th style="width:120px">Kategori</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="toolbar"><button class="act" onclick="renderGantt()">↻ Render ulang Gantt</button></div>
+  </div>
+
+  <!-- ============ IZIN ============ -->
+  <div class="panel" id="izin">
+    <h2>Checklist Izin & Dokumen <span class="sub">Indonesia · centang yang sudah lengkap</span></h2>
+
+    <h3 style="color:var(--accent2);margin:16px 0 4px">A. Dokumen Tapak & Awal</h3>
+    <div id="chkA"></div>
+    <h3 style="color:var(--accent2);margin:16px 0 4px">B. PBG (Persetujuan Bangunan Gedung)</h3>
+    <div id="chkB"></div>
+    <h3 style="color:var(--accent2);margin:16px 0 4px">C. SLF (Sertifikat Laik Fungsi) — akhir konstruksi</h3>
+    <div id="chkC"></div>
+    <div class="note">PBG menggantikan IMB sejak PP 16/2021. Diajukan via <b>SIMBG</b> (simbg.pu.go.id). Dokumen teknis (arsitektur, struktur, MEP) wajib lengkap sebelum pengajuan. Untuk komersial/skala besar bisa perlu UKL-UPL/AMDAL & rekomendasi damkar.</div>
+  </div>
+
+  <!-- ============ MEETING ============ -->
+  <div class="panel" id="meeting">
+    <h2>Agenda Meeting Perdana Klien (Kick-off) <span class="sub">Durasi ±90 menit · klik untuk edit</span></h2>
+    <div class="grid" style="margin-top:12px">
+      <div class="field"><label>Tanggal</label><div contenteditable>[tgl], pukul [jam]</div></div>
+      <div class="field"><label>Lokasi / Link</label><div contenteditable>Kantor Studio / Google Meet</div></div>
+      <div class="field"><label>Peserta</label><div contenteditable>Klien, Arsitek Utama, Drafter</div></div>
+    </div>
+    <table style="margin-top:16px">
+      <thead><tr><th style="width:80px">Waktu</th><th>Agenda</th><th>PIC</th></tr></thead>
+      <tbody>
+        <tr><td>10'</td><td contenteditable>Pembukaan & perkenalan tim + alur kerja studio</td><td contenteditable>PM</td></tr>
+        <tr><td>20'</td><td contenteditable>Penggalian brief: kebutuhan ruang, gaya, jumlah penghuni, aktivitas</td><td contenteditable>Arsitek</td></tr>
+        <tr><td>15'</td><td contenteditable>Diskusi anggaran (budget konstruksi) & ekspektasi kualitas/material</td><td contenteditable>PM</td></tr>
+        <tr><td>10'</td><td contenteditable>Pembahasan tapak: data lahan, sertifikat, KRK, kondisi eksisting</td><td contenteditable>Arsitek</td></tr>
+        <tr><td>10'</td><td contenteditable>Timeline & milestone utama (tunjukkan Gantt) + tahap pembayaran</td><td contenteditable>PM</td></tr>
+        <tr><td>10'</td><td contenteditable>Mekanisme komunikasi, approval, & frekuensi laporan</td><td contenteditable>PM</td></tr>
+        <tr><td>10'</td><td contenteditable>Referensi visual / moodboard awal dari klien</td><td contenteditable>Klien</td></tr>
+        <tr><td>5'</td><td contenteditable>Penutup: rekap action items & jadwal pertemuan berikutnya</td><td contenteditable>PM</td></tr>
+      </tbody>
+    </table>
+    <h2 style="margin-top:20px">Action Items</h2>
+    <table>
+      <thead><tr><th>Item</th><th style="width:120px">PIC</th><th style="width:120px">Deadline</th></tr></thead>
+      <tbody>
+        <tr><td contenteditable>Klien kirim sertifikat tanah & data ukur</td><td contenteditable>Klien</td><td contenteditable>[tgl]</td></tr>
+        <tr><td contenteditable>Studio jadwalkan survey lokasi</td><td contenteditable>Drafter</td><td contenteditable>[tgl]</td></tr>
+        <tr><td contenteditable>Kirim draft kontrak / SPK final</td><td contenteditable>PM</td><td contenteditable>[tgl]</td></tr>
+      </tbody>
+    </table>
+    <div class="toolbar"><button class="act" onclick="addRow(this)">+ Tambah action item</button></div>
+  </div>
+
+  <!-- ============ RISK ============ -->
+  <div class="panel" id="risk">
+    <h2>Risk Register <span class="sub">Potensi masalah khas proyek arsitektur + mitigasi</span></h2>
+    <table id="riskTable">
+      <thead><tr><th style="width:40px">#</th><th>Risiko</th><th style="width:80px">Dampak</th><th style="width:90px">Peluang</th><th>Mitigasi</th><th style="width:90px">PIC</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td contenteditable>Scope creep — klien minta revisi terus di luar kesepakatan</td><td>${pill('h','Tinggi')}</td><td>${pill('h','Tinggi')}</td><td contenteditable>Batasi jumlah revisi di kontrak; setiap perubahan = change order tertulis berbayar</td><td contenteditable>PM</td></tr>
+        <tr><td>2</td><td contenteditable>Keterlambatan pembayaran termin oleh klien</td><td>${pill('h','Tinggi')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Termin jelas di kontrak; pekerjaan fase berikut menunggu pembayaran fase sebelumnya</td><td contenteditable>PM</td></tr>
+        <tr><td>3</td><td contenteditable>Proses PBG/SIMBG lebih lama dari perkiraan</td><td>${pill('m','Sedang')}</td><td>${pill('h','Tinggi')}</td><td contenteditable>Ajukan izin sedini mungkin (paralel desain); siapkan buffer 4–6 minggu; gunakan konsultan izin</td><td contenteditable>PM</td></tr>
+        <tr><td>4</td><td contenteditable>Data tapak/ukur tidak akurat → revisi desain besar</td><td>${pill('h','Tinggi')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Survey & pengukuran ulang oleh tim sendiri sebelum DD; verifikasi sertifikat</td><td contenteditable>Drafter</td></tr>
+        <tr><td>5</td><td contenteditable>Estimasi RAB meleset dari budget klien</td><td>${pill('h','Tinggi')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Cek harga material berkala; sampaikan estimasi kasar sejak konsep; sediakan opsi value-engineering</td><td contenteditable>QS</td></tr>
+        <tr><td>6</td><td contenteditable>Koordinasi konsultan (struktur/MEP) telat → bentrok gambar</td><td>${pill('m','Sedang')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Jadwal koordinasi rutin; clash check; deadline internal sebelum deadline klien</td><td contenteditable>PM</td></tr>
+        <tr><td>7</td><td contenteditable>Kontraktor menyimpang dari gambar saat konstruksi</td><td>${pill('h','Tinggi')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Pengawasan berkala terjadwal; berita acara; shop drawing wajib approval sebelum eksekusi</td><td contenteditable>Pengawas</td></tr>
+        <tr><td>8</td><td contenteditable>Kunci personel keluar/sakit di tengah proyek</td><td>${pill('m','Sedang')}</td><td>${pill('l','Rendah')}</td><td contenteditable>Dokumentasi rapi di Drive; back-up PIC; file naming standar</td><td contenteditable>PM</td></tr>
+        <tr><td>9</td><td contenteditable>Cuaca/force majeure memperlambat konstruksi</td><td>${pill('m','Sedang')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Buffer jadwal; klausul force majeure di kontrak; jadwal kritis di musim kering</td><td contenteditable>Pengawas</td></tr>
+        <tr><td>10</td><td contenteditable>Miskomunikasi ekspektasi desain dengan klien</td><td>${pill('m','Sedang')}</td><td>${pill('m','Sedang')}</td><td contenteditable>Approval tertulis tiap fase; gunakan 3D/render; notulen meeting selalu dikirim</td><td contenteditable>Arsitek</td></tr>
+      </tbody>
+    </table>
+    <div class="toolbar"><button class="act" onclick="addRow(this)">+ Tambah risiko</button></div>
+  </div>
+
+</div>
+
+<script>
+/* ---------- helpers used inline (string templates evaluated as text, so render after) ---------- */
+function badge(s){return ''}  /* placeholder, real badges injected below */
+function pill(s,t){return ''}
+
+/* Replace placeholder text tokens with real HTML after load */
+document.addEventListener('DOMContentLoaded',()=>{
+  // fix WBS badges (they were literal ${badge('x')} strings)
+  document.querySelectorAll('td').forEach(td=>{
+    td.innerHTML = td.innerHTML
+      .replace(/\$\{badge\('todo'\)\}/g,'<span class="badge b-todo">To-do</span>')
+      .replace(/\$\{badge\('prog'\)\}/g,'<span class="badge b-prog">Berjalan</span>')
+      .replace(/\$\{badge\('done'\)\}/g,'<span class="badge b-done">Selesai</span>')
+      .replace(/\$\{pill\('h','Tinggi'\)\}/g,'<span class="pill p-h">Tinggi</span>')
+      .replace(/\$\{pill\('m','Sedang'\)\}/g,'<span class="pill p-m">Sedang</span>')
+      .replace(/\$\{pill\('l','Rendah'\)\}/g,'<span class="pill p-l">Rendah</span>');
+  });
+  buildChecklists();
+  buildCtrl();
+  renderGantt();
+  enhanceTables();
+  captureDefaults();
+  loadState();
+  enhanceTables();
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById(t.dataset.t).classList.add('active');
+  });
+  document.body.addEventListener('input',saveState);
+});
+
+/* ---------- Gantt data ---------- */
+const TOTAL_WEEKS=29;
+const ACTS=[
+  {n:'1. Persiapan & Kontrak',s:1,d:1,c:'admin'},
+  {n:'2. Brief & Survey/Pengukuran',s:1,d:2,c:'desain'},
+  {n:'3. Konsep Desain (SD)',s:3,d:3,c:'desain'},
+  {n:'4. Pengembangan Desain (DD)',s:6,d:4,c:'desain'},
+  {n:'5. DED & Gambar Kerja',s:10,d:6,c:'desain'},
+  {n:'6. RAB & RKS',s:14,d:3,c:'desain'},
+  {n:'7. Perizinan (PBG/SIMBG)',s:12,d:9,c:'izin'},
+  {n:'8. Tender / Pilih Kontraktor',s:17,d:3,c:'admin'},
+  {n:'9. Konstruksi & Pengawasan',s:18,d:11,c:'konstruksi'},
+  {n:'10. Serah Terima & SLF',s:28,d:2,c:'admin'},
+];
+const COL={desain:'#e0a458',izin:'#5b8def',konstruksi:'#3fb950',admin:'#b06be0'};
+const MILESTONES={5:'Konsep di-ACC',9:'DD di-ACC',15:'DED selesai',20:'PBG terbit',29:'Serah terima'};
+
+function buildCtrl(){
+  const tb=document.querySelector('#ctrlTable tbody');
+  tb.innerHTML='';
+  ACTS.forEach((a,i)=>{
+    tb.innerHTML+=`<tr>
+      <td>${a.n}</td>
+      <td><input type="number" min="1" max="${TOTAL_WEEKS}" value="${a.s}" data-i="${i}" data-k="s" style="width:60px;background:#232834;border:1px solid #2a2f3a;color:#fff;border-radius:5px;padding:4px"></td>
+      <td><input type="number" min="1" max="${TOTAL_WEEKS}" value="${a.d}" data-i="${i}" data-k="d" style="width:60px;background:#232834;border:1px solid #2a2f3a;color:#fff;border-radius:5px;padding:4px"></td>
+      <td>${a.c}</td></tr>`;
+  });
+  tb.querySelectorAll('input').forEach(inp=>inp.oninput=()=>{
+    ACTS[inp.dataset.i][inp.dataset.k]=parseInt(inp.value)||1;renderGantt();saveState();
+  });
+}
+
+function renderGantt(){
+  const t=document.getElementById('ganttTable');
+  let head='<thead><tr><th class="lbl">Aktivitas</th>';
+  for(let w=1;w<=TOTAL_WEEKS;w++)head+=`<th>M${w}</th>`;
+  head+='</tr></thead>';
+  let body='<tbody>';
+  ACTS.forEach(a=>{
+    body+=`<tr><td class="lbl">${a.n}</td>`;
+    for(let w=1;w<=TOTAL_WEEKS;w++){
+      let inner='';
+      if(w===a.s){
+        const widthPct=a.d*100;
+        inner=`<div class="bar" style="left:1px;width:calc(${widthPct}% - 2px);background:${COL[a.c]}">${a.d}mg</div>`;
+      }
+      let ms = MILESTONES[w] && (w>=a.s && w<a.s+a.d) ? '' : '';
+      body+=`<td class="gcell">${inner}</td>`;
+    }
+    body+='</tr>';
+  });
+  // milestone row
+  body+='<tr><td class="lbl">◆ Milestone</td>';
+  for(let w=1;w<=TOTAL_WEEKS;w++){
+    body+=`<td class="gcell" style="text-align:center">${MILESTONES[w]?`<span class="ms" title="${MILESTONES[w]}">◆</span>`:''}</td>`;
+  }
+  body+='</tr></tbody>';
+  t.innerHTML=head+body;
+}
+
+/* ---------- Checklists ---------- */
+const CHK={
+  A:[['KRK / Keterangan Rencana Kota','dari Dinas PUPR / kelurahan'],
+     ['Sertifikat tanah (SHM/HGB)','milik klien, salinan'],
+     ['Bukti PBB terbaru','tahun berjalan'],
+     ['Surat kuasa pengurusan izin','jika diwakilkan'],
+     ['Hasil survey & pengukuran lahan','oleh tim studio'],
+     ['Foto kondisi eksisting','semua sisi tapak']],
+  B:[['Formulir permohonan PBG (SIMBG)','simbg.pu.go.id'],
+     ['Gambar arsitektur lengkap','denah, tampak, potongan, situasi'],
+     ['Gambar & perhitungan struktur','TTD ahli struktur'],
+     ['Gambar MEP','listrik, air, sanitasi'],
+     ['Dokumen rencana teknis + spesifikasi','RKS'],
+     ['KRK & data tapak','lampiran'],
+     ['Pernyataan tanggung jawab (TABG bila perlu)','sesuai daerah'],
+     ['Retribusi PBG dibayar','sesuai SK']],
+  C:[['Bangunan selesai sesuai PBG','verifikasi'],
+     ['As-built drawing','arsitektur, struktur, MEP'],
+     ['Pemeriksaan kelaikan (instalasi, struktur)','pengkaji teknis'],
+     ['Pengajuan SLF via SIMBG','setelah konstruksi'],
+     ['Berita acara serah terima ke klien','BAST']]
+};
+function buildChecklists(){
+  for(const k of ['A','B','C']){
+    const box=document.getElementById('chk'+k);
+    box.innerHTML=CHK[k].map((it,i)=>`<div class="chk"><input type="checkbox" id="c${k}${i}"><label for="c${k}${i}"><div>${it[0]}</div><div class="d">${it[1]}</div></label></div>`).join('');
+  }
+}
+
+/* ---------- delete-row + reset support ---------- */
+function bindDel(b){b.onclick=function(){if(confirm('Hapus baris ini?')){this.closest('tr').remove();saveState();}};}
+function makeDelCell(){
+  const td=document.createElement('td');td.className='delcell';
+  const b=document.createElement('button');b.className='delbtn';b.textContent='×';b.title='Hapus baris';
+  bindDel(b);td.appendChild(b);return td;
+}
+function enhanceTables(){
+  document.querySelectorAll('.panel table').forEach(t=>{
+    if(t.id==='ganttTable'||t.id==='ctrlTable')return; // skip auto-generated tables
+    const headRow=t.querySelector('thead tr');
+    if(headRow && !headRow.querySelector('.delcol')){
+      const th=document.createElement('th');th.className='delcol';headRow.appendChild(th);
+    }
+    t.querySelectorAll('tbody tr').forEach(tr=>{
+      let cell=tr.querySelector('.delcell');
+      if(!cell){tr.appendChild(makeDelCell());}
+      else{const b=cell.querySelector('.delbtn');if(b)bindDel(b);} // rebind after innerHTML restore
+    });
+  });
+}
+
+/* ---------- defaults / reset per panel ---------- */
+const DEFAULTS={};
+function captureDefaults(){document.querySelectorAll('.panel').forEach(p=>{if(p.id!=='gantt')DEFAULTS[p.id]=p.innerHTML;});}
+function resetPanel(id){
+  if(!confirm('Reset bagian ini ke data contoh? Perubahan di bagian ini akan hilang.'))return;
+  const p=document.getElementById(id);if(!p||!DEFAULTS[id])return;
+  p.innerHTML=DEFAULTS[id];
+  enhanceTables();saveState();
+}
+
+/* ---------- generic add row ---------- */
+function addRow(btn){
+  const panel=btn.closest('.panel');const tb=btn.closest('.toolbar');
+  const tables=[...panel.querySelectorAll('table')];
+  let table=tables[0];
+  tables.forEach(t=>{if(t.compareDocumentPosition(tb)&Node.DOCUMENT_POSITION_FOLLOWING)table=t;});
+  let cols=table.querySelectorAll('thead th').length;
+  const hasDel=table.querySelector('.delcol');if(hasDel)cols--;
+  const tr=document.createElement('tr');
+  for(let i=0;i<cols;i++){const td=document.createElement('td');td.contentEditable=true;td.textContent=' ';tr.appendChild(td);}
+  if(hasDel)tr.appendChild(makeDelCell());
+  table.querySelector('tbody').appendChild(tr);saveState();
+}
+
+/* ---------- persistence ---------- */
+function saveState(){
+  const data={html:{},chk:{},acts:ACTS};
+  document.querySelectorAll('.panel').forEach(p=>data.html[p.id]=p.innerHTML);
+  document.querySelectorAll('input[type=checkbox]').forEach(c=>data.chk[c.id]=c.checked);
+  try{localStorage.setItem('studioProj',JSON.stringify(data));
+    const m=document.getElementById('saveMsg');if(m){m.textContent='✓ tersimpan';setTimeout(()=>m.textContent='',1200);}
+  }catch(e){}
+}
+function loadState(){
+  try{
+    const raw=localStorage.getItem('studioProj');if(!raw)return;
+    const data=JSON.parse(raw);
+    if(data.acts){data.acts.forEach((a,i)=>{if(ACTS[i]){ACTS[i].s=a.s;ACTS[i].d=a.d;}});buildCtrl();renderGantt();}
+    if(data.html){for(const id in data.html){const p=document.getElementById(id);if(p&&id!=='gantt')p.innerHTML=data.html[id];}}
+    if(data.chk){for(const id in data.chk){const c=document.getElementById(id);if(c)c.checked=data.chk[id];}}
+  }catch(e){}
+}
+function resetAll(){if(confirm('Hapus semua perubahan & kembali ke data contoh?')){localStorage.removeItem('studioProj');location.reload();}}
+</script>
+</body>
+</html>

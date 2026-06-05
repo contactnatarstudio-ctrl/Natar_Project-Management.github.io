@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Setup Manajemen Proyek — Studio Arsitektur</title>
+<style>
+:root{color-scheme:light;
+--bg:#f6f5f2;--card:#ffffff;--ink:#1c1a17;--muted:#6b655c;--line:#e3ded6;
+--accent:#9a6b3f;--accent2:#3f6b5e;--gold:#b8893f;
+--rumah:#3f6b5e;--komersial:#9a6b3f;--interior:#7a5ea8;--master:#c08a2e;
+--red:#c0392b;--amber:#d68910;--green:#2e7d52;--blue:#2c6fa6;
+--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+background:var(--bg);color:var(--ink);line-height:1.5;font-size:14px}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 20px 80px}
+header.hero{background:linear-gradient(135deg,#2b2722,#403a30);color:#f6f1e8;border-radius:14px;padding:26px 30px;box-shadow:var(--shadow)}
+header.hero h1{font-size:22px;font-weight:700;letter-spacing:.2px}
+header.hero p{color:#d7cdbd;margin-top:6px;font-size:13px;max-width:760px}
+.meta-row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.meta{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;font-size:12px}
+.meta b{display:block;color:#bcae99;font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.6px;margin-bottom:2px}
+.meta span{font-size:13px;font-weight:600}
+nav.tabs{display:flex;flex-wrap:wrap;gap:6px;margin:22px 0 18px;position:sticky;top:0;z-index:30;background:var(--bg);padding:8px 0}
+nav.tabs button{border:1px solid var(--line);background:var(--card);color:var(--muted);padding:9px 14px;border-radius:9px;cursor:pointer;font-size:13px;font-weight:600;transition:.15s;box-shadow:var(--shadow)}
+nav.tabs button:hover{color:var(--ink);border-color:#cdbfa8}
+nav.tabs button.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.panel{display:none;animation:fade .25s ease}
+.panel.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;box-shadow:var(--shadow);margin-bottom:18px}
+h2.sec{font-size:18px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:16px}
+h3{font-size:15px;font-weight:700;margin:18px 0 8px;color:var(--accent)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:#faf8f4;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700}
+tr:hover td{background:#fcfbf8}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;color:#fff;white-space:nowrap}
+.t-rumah{background:var(--rumah)}.t-komersial{background:var(--komersial)}.t-interior{background:var(--interior)}.t-master{background:var(--master)}.t-all{background:#5c574e}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;border:1px solid var(--line);background:#faf8f4;color:var(--muted)}
+.legend{display:flex;flex-wrap:wrap;gap:8px;margin:6px 0 14px}
+.legend span{font-size:11px;display:flex;align-items:center;gap:5px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:3px;display:inline-block}
+/* WBS tree */
+.wbs-phase{border:1px solid var(--line);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.wbs-head{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;background:#faf8f4;font-weight:700}
+.wbs-head .num{background:var(--accent);color:#fff;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.wbs-head .wk{margin-left:auto;font-size:11px;color:var(--muted);font-weight:600}
+.wbs-body{padding:4px 14px 14px 50px;display:none}
+.wbs-body.open{display:block}
+.wbs-body ul{list-style:none}
+.wbs-body li{padding:5px 0;border-bottom:1px dashed #eee7db;font-size:13px;display:flex;gap:8px;align-items:flex-start}
+.wbs-body li:before{content:"▸";color:var(--gold);flex-shrink:0}
+.wbs-body li:last-child{border-bottom:none}
+/* Gantt */
+.gantt-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+.gantt{min-width:900px;width:100%;border-collapse:collapse;font-size:12px}
+.gantt th,.gantt td{border:1px solid #ece6dc;padding:0}
+.gantt th{background:#faf8f4;padding:6px 4px;text-align:center;font-size:10px;font-weight:700;color:var(--muted)}
+.gantt th.lbl,.gantt td.lbl{text-align:left;padding:8px 10px;min-width:230px;position:sticky;left:0;background:#fff;font-weight:600;font-size:12px;z-index:2}
+.gantt th.lbl{background:#faf8f4;z-index:3}
+.gantt td{height:30px}
+.bar{height:18px;border-radius:5px;margin:0 1px;position:relative}
+.ms{font-size:9px;color:#fff;font-weight:700;text-align:center;line-height:18px;white-space:nowrap;overflow:visible}
+.milestone{position:relative}
+.milestone:after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);color:var(--red);font-size:14px}
+/* Checklist */
+.chk{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.chk:last-child{border:none}
+.chk input{margin-top:3px;width:16px;height:16px;accent-color:var(--accent2);cursor:pointer;flex-shrink:0}
+.chk .body{flex:1}
+.chk .body .nm{font-weight:600;font-size:13px}
+.chk .body .ds{font-size:12px;color:var(--muted);margin-top:2px}
+.chk .body .ds b{color:var(--ink)}
+/* Agenda */
+.agenda-block{border-left:3px solid var(--accent);padding:4px 0 4px 14px;margin-bottom:14px}
+.agenda-block .time{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.4px}
+.agenda-block .ttl{font-weight:700;font-size:14px;margin:2px 0 4px}
+.agenda-block ul{margin-left:16px;font-size:13px;color:#3a352d}
+.agenda-block li{margin:2px 0}
+/* risk */
+.sev{font-weight:700;font-size:11px;padding:3px 8px;border-radius:6px;color:#fff;text-align:center;white-space:nowrap}
+.s-h{background:var(--red)}.s-m{background:var(--amber)}.s-l{background:var(--green)}
+.matrix{display:grid;grid-template-columns:80px repeat(3,1fr);gap:4px;margin:14px 0;max-width:520px}
+.matrix div{padding:8px;text-align:center;font-size:11px;font-weight:600;border-radius:6px}
+.mh{background:#faf8f4;color:var(--muted)}
+.cell{color:#fff;cursor:default}
+/* folder */
+.tree{font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px;line-height:1.9;background:#2b2722;color:#e8dfd0;padding:18px 20px;border-radius:10px;overflow-x:auto;white-space:pre}
+.tree .f{color:#d9a441}.tree .c{color:#8a8170}
+.note{background:#fbf6ec;border:1px solid #ecdcb8;border-radius:8px;padding:12px 14px;font-size:12px;color:#7a5e2a;margin-top:12px}
+.note b{color:#5c4413}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:8px}
+.kpi{background:#faf8f4;border:1px solid var(--line);border-radius:10px;padding:14px}
+.kpi .n{font-size:24px;font-weight:800;color:var(--accent)}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+.btn{display:inline-block;background:var(--accent2);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer}
+.btn:hover{opacity:.9}
+.fill{display:inline-block;background:#fff3d6;border-bottom:1px dashed #c9a14a;padding:0 4px;border-radius:3px;font-style:italic;color:#8a6d22}
+@media print{nav.tabs{display:none}.panel{display:block!important}.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="hero">
+<h1>🏛️ Setup Manajemen Proyek — Studio Arsitektur</h1>
+<p>Paket lengkap untuk memulai proyek baru: WBS, timeline Gantt, checklist perizinan, agenda meeting perdana, risk register, dan struktur folder standar. Dirancang fleksibel untuk semua tipe proyek — penanda warna menunjukkan mana yang spesifik per tipe.</p>
+<div class="meta-row">
+<div class="meta"><b>Klien</b><span class="fill">[isi nama klien]</span></div>
+<div class="meta"><b>Tipe Proyek</b><span class="fill">[rumah / komersial / interior / masterplan]</span></div>
+<div class="meta"><b>Nilai Kontrak</b><span class="fill">Rp [nominal]</span></div>
+<div class="meta"><b>Deadline Serah</b><span class="fill">[tanggal]</span></div>
+<div class="meta"><b>Arsitek Utama</b><span class="fill">[nama]</span></div>
+<div class="meta"><b>Tim</b><span class="fill">drafter, konsultan ME/struktur, dll</span></div>
+</div>
+</header>
+
+<nav class="tabs">
+<button class="active" data-t="dash">📊 Dashboard</button>
+<button data-t="wbs">🗂️ WBS</button>
+<button data-t="gantt">📅 Timeline Gantt</button>
+<button data-t="izin">📋 Checklist Izin</button>
+<button data-t="agenda">🤝 Agenda Meeting</button>
+<button data-t="risk">⚠️ Risk Register</button>
+<button data-t="folder">📁 Struktur Folder</button>
+</nav>
+
+<!-- DASHBOARD -->
+<section class="panel active" id="dash">
+<div class="card">
+<h2 class="sec">Ringkasan Proyek</h2>
+<p class="sub">Isi metadata di header, lalu gunakan tab lain sebagai instrumen kerja harian. Centang checklist & klik fase WBS untuk membuka detail.</p>
+<div class="kpi-row">
+<div class="kpi"><div class="n">7</div><div class="l">Fase WBS</div></div>
+<div class="kpi"><div class="n">~24</div><div class="l">Minggu (estimasi rumah tinggal)</div></div>
+<div class="kpi"><div class="n">8</div><div class="l">Milestone Utama</div></div>
+<div class="kpi"><div class="n">12</div><div class="l">Item Risk Register</div></div>
+</div>
+</div>
+<div class="card">
+<h3>Cara pakai paket ini</h3>
+<table>
+<tr><th>Tab</th><th>Fungsi</th><th>Kapan dipakai</th></tr>
+<tr><td><b>WBS</b></td><td>Rincian semua fase & deliverable</td><td>Saat scoping & bagi tugas tim</td></tr>
+<tr><td><b>Gantt</b></td><td>Timeline per minggu + milestone</td><td>Saat planning & monitoring jadwal</td></tr>
+<tr><td><b>Checklist Izin</b></td><td>Dokumen & perizinan (PBG, KRK, SLF…)</td><td>Sejak awal — banyak yang lead time-nya panjang</td></tr>
+<tr><td><b>Agenda Meeting</b></td><td>Template kickoff dengan klien</td><td>Sebelum meeting perdana</td></tr>
+<tr><td><b>Risk Register</b></td><td>Potensi masalah + mitigasi</td><td>Review tiap 2 minggu</td></tr>
+<tr><td><b>Folder</b></td><td>Struktur Drive/Notion standar</td><td>Sekali di awal (sudah dibuat otomatis di Drive)</td></tr>
+</table>
+<div class="note"><b>Catatan tahapan:</b> Struktur fase mengikuti tahapan layanan jasa arsitek IAI (Konsep → Pra-rancangan → Pengembangan → Gambar Kerja → Tender → Pengawasan Berkala). Durasi minggu adalah estimasi rumah tinggal; sesuaikan untuk komersial (lebih panjang) atau interior (lebih pendek).</div>
+</div>
+</section>
+
+<!-- WBS -->
+<section class="panel" id="wbs">
+<div class="card">
+<h2 class="sec">🗂️ Work Breakdown Structure</h2>
+<p class="sub">Klik tiap fase untuk membuka deliverable. Tag menandai item yang spesifik per tipe proyek.</p>
+<div class="legend">
+<span><i class="dot" style="background:var(--rumah)"></i>Rumah tinggal</span>
+<span><i class="dot" style="background:var(--komersial)"></i>Komersial</span>
+<span><i class="dot" style="background:var(--interior)"></i>Interior</span>
+<span><i class="dot" style="background:var(--master)"></i>Masterplan</span>
+<span><i class="dot" style="background:#5c574e"></i>Semua tipe</span>
+</div>
+<div id="wbs-tree"></div>
+</div>
+</section>
+
+<!-- GANTT -->
+<section class="panel" id="gantt">
+<div class="card">
+<h2 class="sec">📅 Timeline Gantt — Milestone per Minggu</h2>
+<p class="sub">Estimasi 24 minggu (rumah tinggal). ◆ = milestone. Geser horizontal untuk lihat semua minggu. Untuk komersial gandakan ~1,5×; interior ~0,5×.</p>
+<div class="legend">
+<span><i class="dot" style="background:var(--rumah)"></i>Desain</span>
+<span><i class="dot" style="background:var(--komersial)"></i>Gambar kerja/teknis</span>
+<span><i class="dot" style="background:var(--blue)"></i>Perizinan</span>
+<span><i class="dot" style="background:var(--interior)"></i>Tender/Pengawasan</span>
+<span><i class="dot" style="background:var(--red)"></i>◆ Milestone</span>
+</div>
+<div class="gantt-scroll"><table class="gantt" id="gantt-tbl"></table></div>
+</div>
+</section>
+
+<!-- IZIN -->
+<section class="panel" id="izin">
+<div class="card">
+<h2 class="sec">📋 Checklist Izin & Dokumen</h2>
+<p class="sub">Centang yang sudah beres. Banyak perizinan punya lead time mingguan—mulai sedini mungkin. Konteks: regulasi Indonesia (UU Cipta Kerja / SIMBG).</p>
+<div id="chk-list"></div>
+<div class="note"><b>Penting:</b> Sejak 2021 IMB digantikan <b>PBG (Persetujuan Bangunan Gedung)</b> via sistem SIMBG. <b>SLF (Sertifikat Laik Fungsi)</b> wajib sebelum bangunan dipakai. Untuk komersial besar mungkin perlu <b>AMDAL/UKL-UPL</b> & <b>ANDALALIN</b>. Verifikasi persyaratan terbaru ke dinas terkait (PUPR/DPMPTSP) setempat karena bisa berbeda tiap daerah.</div>
+</div>
+</section>
+
+<!-- AGENDA -->
+<section class="panel" id="agenda">
+<div class="card">
+<h2 class="sec">🤝 Template Agenda Meeting Perdana (Kickoff)</h2>
+<p class="sub">Durasi target 90 menit. Salin ke notulen, isi bagian <span class="fill">[…]</span>.</p>
+<div id="agenda-list"></div>
+<button class="btn" onclick="window.print()">🖨️ Cetak / Simpan PDF</button>
+</div>
+</section>
+
+<!-- RISK -->
+<section class="panel" id="risk">
+<div class="card">
+<h2 class="sec">⚠️ Risk Register</h2>
+<p class="sub">Potensi masalah khas proyek arsitektur + mitigasi. Skor = Likelihood × Impact.</p>
+<div class="matrix">
+<div class="mh"></div><div class="mh">Impact Rendah</div><div class="mh">Impact Sedang</div><div class="mh">Impact Tinggi</div>
+<div class="mh">Sering</div><div class="cell s-m">Sedang</div><div class="cell s-h">Tinggi</div><div class="cell s-h">Tinggi</div>
+<div class="mh">Kadang</div><div class="cell s-l">Rendah</div><div class="cell s-m">Sedang</div><div class="cell s-h">Tinggi</div>
+<div class="mh">Jarang</div><div class="cell s-l">Rendah</div><div class="cell s-l">Rendah</div><div class="cell s-m">Sedang</div>
+</div>
+<table id="risk-tbl"></table>
+</div>
+</section>
+
+<!-- FOLDER -->
+<section class="panel" id="folder">
+<div class="card">
+<h2 class="sec">📁 Struktur Folder Standar</h2>
+<p class="sub">Struktur ini sudah dibuat otomatis di Google Drive kamu. Pola penamaan: <span class="pill">[KodeProyek]_[NamaKlien]</span></p>
+<div class="tree" id="folder-tree"></div>
+<div class="note"><b>Konvensi penamaan file:</b> <code>YYMMDD_[Tipe]_[Deskripsi]_[Rev].ext</code> — contoh <code>260604_DED_DenahLt1_R02.pdf</code>. Selalu pakai folder <b>00_ARCHIVE</b> untuk revisi lama, jangan hapus.</div>
+</div>
+</section>
+</div>
+
+<script>
+/* ---------- TABS ---------- */
+document.querySelectorAll('nav.tabs button').forEach(b=>{
+b.onclick=()=>{
+document.querySelectorAll('nav.tabs button').forEach(x=>x.classList.remove('active'));
+document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+b.classList.add('active');
+document.getElementById(b.dataset.t).classList.add('active');
+window.scrollTo({top:0,behavior:'smooth'});
+};
+});
+
+/* ---------- WBS DATA ---------- */
+const wbs=[
+{n:1,t:"Persiapan & Konsep (Pra-rancangan)",wk:"Minggu 1–2",items:[
+["Kontrak kerja & SPK ditandatangani, lingkup + termin pembayaran disepakati","all"],
+["Brief klien: kebutuhan ruang, gaya, anggaran konstruksi, preferensi","all"],
+["Survei & pengukuran tapak, dokumentasi foto eksisting","all"],
+["Cek sertifikat tanah (SHM/HGB), KRK / advis planning, GSB & KDB-KLB","all"],
+["Analisis tapak: orientasi matahari, angin, kontur, akses, drainase","rumah komersial master"],
+["Inventarisasi kondisi eksisting & as-built bangunan","interior"],
+["Konsep desain & moodboard, zoning awal","all"],
+["Estimasi biaya konstruksi kasar (rough order of magnitude)","all"],
+]},
+{n:2,t:"Skematik Desain (SD)",wk:"Minggu 3–6",items:[
+["Denah skematik, gubahan massa, blok plan","all"],
+["Tata letak furnitur & alur sirkulasi","interior"],
+["Sketsa 3D / studi massa, tampak awal","all"],
+["Konsep struktur & sistem MEP secara garis besar","rumah komersial master"],
+["Rencana fasad & material palette","all"],
+["Presentasi SD ke klien + revisi putaran 1","all"],
+["Rencana tapak kawasan & pembagian kavling/zona","master"],
+]},
+{n:3,t:"Pengembangan Rancangan (DD)",wk:"Minggu 7–11",items:[
+["Denah, tampak, potongan terukur & terskala","all"],
+["Render 3D fotorealistik interior & eksterior","all"],
+["Pemilihan material, finishing, fixture final + spesifikasi","all"],
+["Koordinasi konsultan struktur (perhitungan awal)","rumah komersial master"],
+["Koordinasi konsultan ME (listrik, plumbing, AC, fire)","komersial master"],
+["RAB pengembangan (cost plan) per item pekerjaan","all"],
+["Skema FF&E & custom furniture detail","interior"],
+["Approval DD dari klien (sign-off sebelum gambar kerja)","all"],
+]},
+{n:4,t:"Gambar Kerja / DED (Construction Documents)",wk:"Minggu 12–18",items:[
+["Gambar arsitektur lengkap: denah, tampak, potongan, detail","all"],
+["Detail prinsip: kusen, tangga, kamar mandi, plafon, dinding","all"],
+["Gambar struktur (pondasi, kolom, balok, pelat) — konsultan","rumah komersial master"],
+["Gambar MEP lengkap & diagram instalasi — konsultan","komersial master"],
+["Gambar shop drawing furniture & detail fabrikasi","interior"],
+["RKS (Rencana Kerja & Syarat) / spesifikasi teknis","all"],
+["BoQ & RAB final untuk tender","all"],
+["Koordinasi antar-disiplin & clash check","komersial master"],
+]},
+{n:5,t:"Perizinan & Pengadaan / Tender",wk:"Minggu 16–20 (paralel)",items:[
+["Submit PBG via SIMBG + kelengkapan dokumen","rumah komersial master"],
+["Dokumen tender disusun & dikirim ke kontraktor","all"],
+["Aanwijzing (penjelasan tender) & evaluasi penawaran","komersial master"],
+["Rekomendasi pemenang tender ke klien","all"],
+["Pemilihan vendor furniture & kontraktor fit-out","interior"],
+["Kontrak pelaksanaan konstruksi ditandatangani","all"],
+]},
+{n:6,t:"Pengawasan Berkala (Construction Admin)",wk:"Minggu 20+ (selama konstruksi)",items:[
+["Kunjungan lapangan berkala & laporan progres","all"],
+["Review & approve shop drawing kontraktor","all"],
+["Cek kesesuaian pelaksanaan dgn desain & spesifikasi","all"],
+["Evaluasi material on-site / approval sample","all"],
+["Manajemen perubahan desain (variation order) terdokumentasi","all"],
+["Sertifikasi pembayaran progres ke kontraktor","komersial master"],
+]},
+{n:7,t:"Serah Terima & Penutupan",wk:"Akhir proyek",items:[
+["Punch list / daftar cacat & perbaikan akhir","all"],
+["Pengurusan SLF (Sertifikat Laik Fungsi)","rumah komersial master"],
+["As-built drawing & dokumen O&M / manual","all"],
+["Dokumentasi foto profesional hasil akhir","all"],
+["Serah terima ke klien + berita acara","all"],
+["Pelunasan termin akhir & evaluasi proyek internal","all"],
+]},
+];
+const tagMap={rumah:["t-rumah","Rumah"],komersial:["t-komersial","Komersial"],interior:["t-interior","Interior"],master:["t-master","Master"]};
+function tags(s){if(s==="all")return '<span class="tag t-all">Semua</span>';
+return s.split(" ").map(k=>`<span class="tag ${tagMap[k][0]}">${tagMap[k][1]}</span>`).join(" ");}
+const wt=document.getElementById('wbs-tree');
+wbs.forEach((p,i)=>{
+const d=document.createElement('div');d.className='wbs-phase';
+d.innerHTML=`<div class="wbs-head"><span class="num">${p.n}</span><span>${p.t}</span><span class="wk">${p.wk}</span></div>
+<div class="wbs-body ${i===0?'open':''}"><ul>${p.items.map(it=>`<li><span>${it[0]}</span> ${tags(it[1])}</li>`).join('')}</ul></div>`;
+d.querySelector('.wbs-head').onclick=()=>d.querySelector('.wbs-body').classList.toggle('open');
+wt.appendChild(d);
+});
+
+/* ---------- GANTT ---------- */
+const WEEKS=24;
+const bars=[
+{l:"1. Persiapan & Konsep",s:1,e:2,c:"var(--rumah)"},
+{l:"2. Skematik Desain (SD)",s:3,e:6,c:"var(--rumah)"},
+{l:"3. Pengembangan Rancangan (DD)",s:7,e:11,c:"var(--rumah)"},
+{l:"4. Gambar Kerja / DED",s:12,e:18,c:"var(--komersial)"},
+{l:"5. Perizinan PBG (SIMBG)",s:16,e:22,c:"var(--blue)"},
+{l:"6. Tender & Pengadaan",s:18,e:20,c:"var(--interior)"},
+{l:"7. Pengawasan Berkala",s:20,e:24,c:"var(--interior)"},
+];
+const milestones={2:"Konsep OK",6:"SD Approved",11:"DD Sign-off",18:"DED Selesai",20:"Kontraktor Terpilih",22:"PBG Terbit",24:"Serah Terima"};
+const gt=document.getElementById('gantt-tbl');
+let head="<tr><th class='lbl'>Fase / Aktivitas</th>";
+for(let w=1;w<=WEEKS;w++)head+=`<th>M${w}</th>`;head+="</tr>";
+let rows="";
+bars.forEach(b=>{
+rows+="<tr><td class='lbl'>"+b.l+"</td>";
+for(let w=1;w<=WEEKS;w++){
+if(w>=b.s&&w<=b.e){
+const lab=(w===b.s)?`<div class="ms">M${b.s}–${b.e}</div>`:"";
+rows+=`<td><div class="bar" style="background:${b.c}">${lab}</div></td>`;
+}else rows+="<td></td>";
+}
+rows+="</tr>";
+});
+/* milestone row */
+rows+="<tr><td class='lbl' style='color:var(--red)'>◆ Milestone</td>";
+for(let w=1;w<=WEEKS;w++){
+if(milestones[w])rows+=`<td class="milestone" title="${milestones[w]}"></td>`;
+else rows+="<td></td>";
+}
+rows+="</tr>";
+gt.innerHTML=head+rows;
+
+/* ---------- CHECKLIST IZIN ---------- */
+const izin=[
+["Sertifikat tanah (SHM / HGB) & bukti kepemilikan","Verifikasi keaslian & status sengketa sebelum mulai. Wajib untuk PBG.","all"],
+["KRK / Keterangan Rencana Kota (advis planning)","Info GSB, KDB, KLB, KDH, peruntukan lahan. Dasar seluruh desain.","rumah komersial master"],
+["KKPR (Kesesuaian Kegiatan Pemanfaatan Ruang)","Untuk kegiatan komersial/kawasan—pengganti izin lokasi.","komersial master"],
+["PBG — Persetujuan Bangunan Gedung (via SIMBG)","Pengganti IMB. Butuh gambar arsitektur, struktur, MEP + dokumen teknis.","rumah komersial master"],
+["Dokumen lingkungan: SPPL / UKL-UPL / AMDAL","Skala kecil=SPPL; menengah=UKL-UPL; besar/berdampak=AMDAL.","komersial master"],
+["ANDALALIN (Analisis Dampak Lalu Lintas)","Untuk bangunan komersial/kawasan yang membangkitkan lalu lintas.","komersial master"],
+["Rekomendasi proteksi kebakaran (Damkar)","Sistem fire protection untuk bangunan publik/komersial.","komersial master"],
+["Persetujuan lingkungan / izin tetangga (sempadan)","Terutama untuk rumah berhimpit / bangunan tinggi.","rumah komersial"],
+["Perhitungan & gambar struktur ber-SKA","Ditandatangani ahli bersertifikat untuk PBG.","rumah komersial master"],
+["SLF — Sertifikat Laik Fungsi","Wajib sebelum bangunan digunakan. Diurus setelah konstruksi selesai.","rumah komersial master"],
+["Izin reklame / signage","Jika ada papan nama/iklan di fasad.","komersial interior"],
+["Kontrak kerja arsitek (SPK) & NDA bila perlu","Lindungi lingkup, termin, hak cipta desain.","all"],
+["Asuransi proyek / CAR (Contractor All Risk)","Untuk proyek konstruksi bernilai besar.","komersial master"],
+["Dokumentasi as-built & SOP gedung","Diserahkan saat serah terima.","all"],
+];
+const cl=document.getElementById('chk-list');
+izin.forEach((it,i)=>{
+const d=document.createElement('div');d.className='chk';
+d.innerHTML=`<input type="checkbox" id="c${i}"><label class="body" for="c${i}">
+<div class="nm">${it[0]} ${tags(it[2])}</div><div class="ds">${it[1]}</div></label>`;
+cl.appendChild(d);
+});
+
+/* ---------- AGENDA ---------- */
+const agenda=[
+["0–10 mnt","Pembukaan & perkenalan",["Perkenalan tim studio + peran masing-masing (arsitek utama, drafter, PM)","Perkenalan pihak klien & pengambil keputusan utama","Tujuan meeting & agenda hari ini"]],
+["10–30 mnt","Pemahaman brief & visi klien",["Kebutuhan ruang & fungsi — konfirmasi ulang","Gaya/estetika yang diinginkan (tunjukkan referensi)","Anggaran konstruksi target & batas atas","Siapa pengguna akhir & gaya hidup / operasional"]],
+["30–50 mnt","Konteks tapak & batasan",["Status lahan, KRK, GSB/KDB/KLB","Kondisi eksisting / hasil survei awal","Batasan regulasi & perizinan (PBG, SLF, dll)","Kendala teknis: akses, utilitas, tetangga"]],
+["50–70 mnt","Lingkup, proses & timeline",["Penjelasan 7 fase kerja (tunjukkan WBS & Gantt)","Milestone & titik approval klien","Estimasi durasi & deadline serah: [tanggal]","Termin pembayaran & nilai kontrak: Rp [nominal]"]],
+["70–85 mnt","Cara kerja & komunikasi",["Channel komunikasi (WA/email/Notion) & PIC","Frekuensi update & meeting rutin","Cara handle revisi & variation order","Akses folder Drive bersama"]],
+["85–90 mnt","Penutup & tindak lanjut",["Rekap keputusan & kesepakatan","Action items + penanggung jawab + tenggat","Jadwal meeting berikutnya","Dokumen yang ditunggu dari klien (sertifikat, dll)"]],
+];
+const al=document.getElementById('agenda-list');
+agenda.forEach(a=>{
+const d=document.createElement('div');d.className='agenda-block';
+d.innerHTML=`<div class="time">⏱ ${a[0]}</div><div class="ttl">${a[1]}</div><ul>${a[2].map(x=>`<li>${x}</li>`).join('')}</ul>`;
+al.appendChild(d);
+});
+
+/* ---------- RISK REGISTER ---------- */
+const risks=[
+["Scope creep — klien terus menambah permintaan","Sering","Tinggi","s-h","Kontrak jelas + lingkup terdokumentasi; setiap perubahan = variation order tertulis berbiaya."],
+["Perizinan (PBG) molor / ditolak","Kadang","Tinggi","s-h","Mulai urus sejak DD; libatkan konsultan izin; siapkan dokumen lengkap & ber-SKA."],
+["Estimasi biaya meleset dari RAB","Sering","Sedang","s-m","Cost plan tiap fase; buffer 10–15%; update RAB di tiap milestone."],
+["Keterlambatan approval klien","Sering","Sedang","s-m","Tetapkan SLA approval (mis. 5 hari kerja) di kontrak; jadwal Gantt dengan buffer."],
+["Revisi desain berulang (indecisive client)","Sering","Sedang","s-m","Batasi 2–3 putaran revisi per fase di kontrak; ekstra revisi = biaya tambahan."],
+["Koordinasi antar-konsultan (struktur/MEP) bentrok","Kadang","Sedang","s-m","Clash check rutin; satu titik koordinasi (PM); BIM/overlay bila memungkinkan."],
+["Kondisi tapak tak sesuai data (tanah, eksisting)","Kadang","Tinggi","s-h","Soil test & survei detail di awal; klausul kondisi tak terduga di kontrak."],
+["Kontraktor kualitas rendah / mundur dari desain","Kadang","Tinggi","s-h","Seleksi tender ketat; pengawasan berkala; shop drawing wajib di-approve."],
+["Pembayaran termin klien tersendat","Kadang","Tinggi","s-h","Termin di muka tiap fase; tahan deliverable sampai pelunasan; klausul penalti."],
+["Anggota tim kunci sakit/resign","Jarang","Sedang","s-m","Dokumentasi & file terstruktur (folder standar); cross-training; backup drafter."],
+["Perubahan regulasi daerah (KDB/KLB/GSB)","Jarang","Tinggi","s-m","Verifikasi KRK terbaru di awal; jaga relasi dgn dinas; review berkala."],
+["Force majeure (cuaca, ekonomi, dll)","Jarang","Tinggi","s-m","Klausul force majeure di kontrak; asuransi CAR; timeline dengan kontingensi."],
+];
+const rt=document.getElementById('risk-tbl');
+let rh="<tr><th>#</th><th>Risiko</th><th>Likelihood</th><th>Impact</th><th>Level</th><th>Mitigasi</th></tr>";
+const lvlName={"s-h":"Tinggi","s-m":"Sedang","s-l":"Rendah"};
+risks.forEach((r,i)=>{
+rh+=`<tr><td>${i+1}</td><td><b>${r[0]}</b></td><td>${r[1]}</td><td>${r[2]}</td><td><span class="sev ${r[3]}">${lvlName[r[3]]}</span></td><td>${r[4]}</td></tr>`;
+});
+rt.innerHTML=rh;
+
+/* ---------- FOLDER TREE ---------- */
+const tree=`<span class="f">[KodeProyek]_[NamaKlien]/</span>
+├── <span class="f">00_ADMIN/</span>            <span class="c"># kontrak, SPK, NDA, invoice, korespondensi</span>
+├── <span class="f">01_BRIEF_RISET/</span>      <span class="c"># brief klien, moodboard, referensi, survei tapak</span>
+├── <span class="f">02_LEGAL_IZIN/</span>       <span class="c"># sertifikat tanah, KRK, PBG, SLF, dok lingkungan</span>
+├── <span class="f">03_DESAIN/</span>
+│   ├── <span class="f">SD_Skematik/</span>
+│   ├── <span class="f">DD_Pengembangan/</span>
+│   └── <span class="f">3D_Render/</span>
+├── <span class="f">04_GAMBAR_KERJA/</span>     <span class="c"># DED arsitektur, struktur, MEP, RKS</span>
+│   ├── <span class="f">Arsitektur/</span>
+│   ├── <span class="f">Struktur/</span>
+│   └── <span class="f">MEP/</span>
+├── <span class="f">05_RAB_BOQ/</span>          <span class="c"># cost plan, BoQ, RAB, dokumen tender</span>
+├── <span class="f">06_KONSULTAN/</span>        <span class="c"># file dari konsultan struktur, ME, QS</span>
+├── <span class="f">07_KONSTRUKSI/</span>       <span class="c"># shop drawing, laporan lapangan, VO, foto progres</span>
+├── <span class="f">08_PRESENTASI/</span>       <span class="c"># materi meeting klien, notulen</span>
+├── <span class="f">09_SERAH_TERIMA/</span>     <span class="c"># as-built, manual O&M, foto final, berita acara</span>
+└── <span class="f">00_ARCHIVE/</span>          <span class="c"># revisi lama — jangan dihapus</span>`;
+document.getElementById('folder-tree').innerHTML=tree;
+</script>
+</body>
+</html>

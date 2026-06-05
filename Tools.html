@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tools — NataR Studio</title>
+
+<!-- Tailwind CSS (CDN) — satu kali untuk seluruh halaman -->
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@300;400;500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<script>
+/* Satu konfigurasi Tailwind untuk semua tool.
+   TRIK PENYERAGAMAN WARNA: kelas indigo/violet bawaan kalkulator ROI di-remap
+   ke rampa BIRU/NAVY NataR — jadi kode ROI lama otomatis tampil biru tanpa
+   harus mengubah satu pun class di HTML-nya. */
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { display:['Jost','ui-sans-serif','system-ui','sans-serif'], sans:['Inter','ui-sans-serif','system-ui','sans-serif'] },
+      colors: {
+        navy:'#14213D', navy2:'#1B2C50', royal:'#2A4C8A', royal2:'#3A5FA8', steel:'#787878', line:'#E6E9F0', soft:'#F4F6FB',
+        /* indigo => biru/navy NataR (warna utama) */
+        indigo:{50:'#eef3fc',100:'#dbe6f8',200:'#bcceef',300:'#90abe2',400:'#5e82d6',500:'#2A4C8A',600:'#2150bf',700:'#1c4099',800:'#1a3673',900:'#14213D'},
+        /* violet => biru langit/teknis (aksen modul parkir) */
+        violet:{50:'#ecf4fb',100:'#d4e7f5',200:'#acd2ee',300:'#76b6e4',400:'#3f97d6',500:'#1f7ec1',600:'#1a69a3',700:'#195a8a',800:'#184a70',900:'#163a58'}
+      }
+    }
+  }
+}
+</script>
+
+<style>
+  :root{--navy:#14213D;--royal:#2A4C8A;--royal2:#3A5FA8;--steel:#787878;--line:#E6E9F0;--soft:#F4F6FB;}
+  body{font-family:'Inter',system-ui,sans-serif;color:#14213D;background:#fff;-webkit-font-smoothing:antialiased}
+  a{text-decoration:none;color:inherit}
+  .font-display{font-family:'Jost',sans-serif}
+  .brand{font-family:'Jost',sans-serif;font-weight:500;letter-spacing:-.01em}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#cfd6e4;border-radius:10px}
+  ::-webkit-scrollbar-thumb:hover{background:#aab4c8}
+
+  .navlink{position:relative;font-weight:500;color:#3a4256;padding:4px 2px;font-size:15px;transition:color .15s}
+  .navlink:hover{color:var(--royal)}
+  .navlink.active{color:var(--royal)}
+  .navlink.active:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:2px;background:var(--royal)}
+
+  /* segmented tab switcher */
+  .toolswitch{display:inline-flex;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:5px;gap:4px}
+  .toolswitch button{display:flex;align-items:center;gap:8px;border:none;background:transparent;color:#5a6173;font-weight:600;font-size:14px;padding:9px 16px;border-radius:9px;cursor:pointer;font-family:inherit;transition:.15s}
+  .toolswitch button:hover{color:var(--navy)}
+  .toolswitch button.active{background:var(--navy);color:#fff;box-shadow:0 6px 16px -8px rgba(20,33,61,.5)}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 1px 2px rgba(20,33,61,.04)}
+
+  /* ===== gaya input kalkulator ROI (di-retint biru) ===== */
+  .amount-field{display:flex;align-items:center;gap:.25rem;border:1px solid #e2e8f0;border-radius:.65rem;background:#fff;padding:0 .6rem;transition:box-shadow .15s,border-color .15s}
+  .amount-field:focus-within{border-color:var(--royal);box-shadow:0 0 0 3px rgba(42,76,138,.15)}
+  .amount-field .affix{font-size:.8rem;font-weight:600;color:#64748b;flex:none;user-select:none}
+  .amount-field input{border:none;outline:none;background:transparent;width:100%;padding:.55rem 0;font-size:.95rem;font-weight:600;color:#0f172a;text-align:right}
+  .amount-field input::placeholder{color:#cbd5e1;font-weight:500}
+  .card-body{transition:opacity .2s ease}
+  .chevron{transition:transform .25s ease}
+  @keyframes flashGlow{0%{box-shadow:0 0 0 0 rgba(42,76,138,.45)}100%{box-shadow:0 0 0 14px rgba(42,76,138,0)}}
+  .flash{animation:flashGlow .6s ease-out}
+  @media (min-width:1024px){.sticky-dash{position:sticky;top:1rem}}
+  input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  input[type=number]{-moz-appearance:textfield}
+
+  /* ===== panel parkir ===== */
+  .pk-field label{display:block;font-size:12px;font-weight:600;color:#5a6173;margin-bottom:6px}
+  .pk-field input,.pk-field select{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--navy);background:#fff;outline:none;transition:.15s;font-weight:600}
+  .pk-field input:focus,.pk-field select:focus{border-color:var(--royal);box-shadow:0 0 0 3px rgba(42,76,138,.13)}
+  .pk-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:6px}
+  .pk-badge:before{content:"";width:7px;height:7px;border-radius:50%}
+  .pk-ok{background:#e9f3ec;color:#2e7d52}.pk-ok:before{background:#2e7d52}
+  .pk-err{background:#fdecec;color:#b23}.pk-err:before{background:#c0392b}
+  .pk-wait{background:#eef2fb;color:#3a4f86}.pk-wait:before{background:#8AA9D6}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--royal);color:#fff;border:none;padding:12px 18px;border-radius:11px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;font-family:inherit}
+  .btn:hover{background:#1f3a6b}.btn:disabled{opacity:.6;cursor:default}
+  .note{background:#eef3fc;border:1px solid #d4e0f7;border-radius:12px;padding:14px 16px;font-size:12.5px;color:#34507f;line-height:1.6}
+  .note b{color:var(--navy)} .note code{background:#dde8fa;padding:1px 6px;border-radius:5px;font-size:11.5px}
+  .raw{font-family:'SF Mono',Menlo,Consolas,monospace;font-size:11.5px;background:var(--navy);color:#d8e3f6;border-radius:10px;padding:12px 14px;overflow:auto;max-height:240px;white-space:pre}
+</style>
+</head>
+
+<body class="bg-white text-navy antialiased">
+
+<!-- ===================== HEADER NAV (gaya NataR) ===================== -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-line">
+  <div class="max-w-[1240px] mx-auto px-6 h-[68px] flex items-center justify-between">
+    <a href="index.html#/works" class="brand text-[26px] text-navy">natar<span class="text-royal">.</span></a>
+    <nav class="flex items-center gap-7">
+      <a href="index.html#/works" class="navlink">Works</a>
+      <a href="index.html#/about" class="navlink">About</a>
+      <a href="Tools.html" class="navlink active">Tools</a>
+      <a href="index.html#/admin" class="navlink">Kelola</a>
+    </nav>
+  </div>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="bg-navy text-white">
+  <div class="max-w-[1240px] mx-auto px-6 pt-10 pb-12">
+    <div class="text-[11px] font-semibold tracking-[.2em] uppercase text-sky-300/80" style="color:#9db2d8">Project Management · Toolkit</div>
+    <h1 class="font-display font-light leading-[1.05] mt-3" style="font-size:clamp(34px,5vw,54px)">Tools</h1>
+    <p class="mt-4 text-[15px] max-w-2xl leading-relaxed" style="color:#cdd8ee">Dua kalkulator analisis dalam satu tempat: <b>Kelayakan Finansial Properti (ROI / NOI / BEP)</b> dan <b>Kapasitas Parkir berbasis SRP</b> yang terhubung ke compute engine. Dipakai untuk studi kelayakan & perencanaan tapak proyek NataR.</p>
+  </div>
+</section>
+
+<!-- ===================== SWITCHER + PANELS ===================== -->
+<main class="max-w-[1240px] mx-auto px-6 py-8">
+
+  <div class="flex flex-wrap items-center justify-between gap-4 mb-7">
+    <div class="toolswitch" id="toolswitch">
+      <button data-tool="roi" class="active">📊 Kalkulator ROI Properti</button>
+      <button data-tool="parkir">🅿️ Kalkulator Kapasitas Parkir</button>
+    </div>
+    <p class="text-xs text-steel">Pilih alat di atas · semua perhitungan berjalan di sisi klien kecuali parkir (memakai backend).</p>
+  </div>
+
+  <!-- ======================================================================
+       TOOL 1 · KALKULATOR ROI / NILAI KOMERSIL PROPERTI
+       ----------------------------------------------------------------------
+       Konten di bawah ini diambil dari file ROI Anda (Documents/Claude/index.html),
+       HANYA bagian <main> (header & footer halaman lama dibuang agar rapi).
+       Untuk MENGGANTI dengan versi terbaru milik Anda:
+       1) salin isi <body> kalkulator ROI Anda (TANPA <header>/<footer> & TANPA
+          tag <script src="tailwind"> / config) ke antara dua penanda di bawah,
+       2) salin blok <script> logikanya ke bagian "SCRIPT ROI" dekat akhir file.
+       Kelas indigo/violet otomatis jadi biru lewat tailwind.config di atas.
+  ======================================================================= -->
+  <section id="panel-roi" class="tool-panel">
+    <div class="card overflow-hidden">
+      <div class="flex items-center gap-3 px-6 py-5 border-b border-line bg-soft">
+        <span class="h-10 w-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center text-xl flex-none">🏢</span>
+        <div>
+          <h2 class="font-display text-xl text-navy">Kalkulator Nilai Komersil Properti</h2>
+          <p class="text-xs text-steel font-medium">ROI · NOI · Cash-on-Cash · Payback Period — Mal, Kantor &amp; Ruko</p>
+        </div>
+      </div>
+
+      <div class="bg-soft p-3 sm:p-5">
+        <!-- ===== AWAL KODE ROI (PASTE / GANTI DI ANTARA PENANDA INI) ===== -->
+        <main class="max-w-7xl mx-auto">
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <!-- ============== KOLOM KIRI : FORM INPUT ============== -->
+            <section class="lg:col-span-7 space-y-5">
+
+              <div class="flex items-center justify-between">
+                <h3 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Parameter Input</h3>
+                <div class="flex gap-2">
+                  <button onclick="loadSample()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Isi Contoh</button>
+                  <button onclick="clearAll()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Kosongkan</button>
+                </div>
+              </div>
+
+              <!-- GRUP 1 : CapEx -->
+              <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <button type="button" onclick="toggleCard(this)" class="w-full flex items-center gap-3 px-5 py-4 text-left border-l-4 border-indigo-500">
+                  <span class="h-9 w-9 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg flex-none">💰</span>
+                  <span class="flex-1">
+                    <span class="block font-bold text-slate-800">Grup 1 &middot; Biaya Investasi (CapEx)</span>
+                    <span class="block text-xs text-slate-400 font-medium">Capital Expenditure — total modal proyek</span>
+                  </span>
+                  <svg class="chevron h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="card-body px-5 pb-5 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Harga Beli Lahan</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="hargaLahan" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Biaya Konstruksi Bangunan Utama</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="biayaKonstruksi" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Biaya Infrastruktur Parkir</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="biayaParkir" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Biaya Legalitas &amp; Perizinan</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="biayaLegal" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div class="flex items-center justify-between rounded-xl bg-indigo-50 ring-1 ring-indigo-100 px-4 py-3">
+                    <span class="text-sm font-semibold text-indigo-700">Total Biaya Investasi</span>
+                    <span id="out_totalInvestasi" class="text-base font-extrabold text-indigo-700">Rp 0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRUP 2 : Revenue -->
+              <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <button type="button" onclick="toggleCard(this)" class="w-full flex items-center gap-3 px-5 py-4 text-left border-l-4 border-emerald-500">
+                  <span class="h-9 w-9 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg flex-none">📈</span>
+                  <span class="flex-1">
+                    <span class="block font-bold text-slate-800">Grup 2 &middot; Proyeksi Pendapatan (Revenue)</span>
+                    <span class="block text-xs text-slate-400 font-medium">Pendapatan kotor tahunan dari sewa &amp; lainnya</span>
+                  </span>
+                  <svg class="chevron h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="card-body px-5 pb-5 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Area Sewa Bersih / Net Leasable Area</label>
+                    <div class="amount-field"><input id="nla" class="currency-input" inputmode="numeric" placeholder="0"><span class="affix affix-r">m²</span></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Harga Sewa per m² per Tahun</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="hargaSewa" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Asumsi Tingkat Okupansi</label>
+                    <div class="amount-field"><input id="okupansi" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Pendapatan Ekstra Tahunan <span class="text-slate-400 font-normal">(Parkir, Iklan, Service Charge)</span></label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="pendapatanEkstra" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                    <p class="text-[11px] text-slate-400 mt-1">💡 Gunakan <b>Modul Estimasi Parkir</b> di bawah untuk mengisi komponen pendapatan parkir secara otomatis.</p>
+                  </div>
+                  <div class="flex items-center justify-between rounded-xl bg-emerald-50 ring-1 ring-emerald-100 px-4 py-3">
+                    <span class="text-sm font-semibold text-emerald-700">Gross Revenue Tahunan</span>
+                    <span id="out_grossRevenue" class="text-base font-extrabold text-emerald-700">Rp 0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRUP 3 : OpEx -->
+              <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <button type="button" onclick="toggleCard(this)" class="w-full flex items-center gap-3 px-5 py-4 text-left border-l-4 border-amber-500">
+                  <span class="h-9 w-9 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-lg flex-none">🛠️</span>
+                  <span class="flex-1">
+                    <span class="block font-bold text-slate-800">Grup 3 &middot; Biaya Operasional (OpEx)</span>
+                    <span class="block text-xs text-slate-400 font-medium">Beban operasional gedung per tahun</span>
+                  </span>
+                  <svg class="chevron h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="card-body px-5 pb-5 space-y-4">
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Biaya Pemeliharaan Gedung / Tahun</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="biayaPemeliharaan" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">Manajemen Properti &amp; Gaji / Tahun</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="biayaManajemen" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-slate-600 mb-1.5">PBB &amp; Asuransi / Tahun</label>
+                    <div class="amount-field"><span class="affix">Rp</span><input id="pbbAsuransi" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                  </div>
+                  <div class="flex items-center justify-between rounded-xl bg-amber-50 ring-1 ring-amber-100 px-4 py-3">
+                    <span class="text-sm font-semibold text-amber-700">Total Biaya Operasional</span>
+                    <span id="out_totalOpex" class="text-base font-extrabold text-amber-700">Rp 0</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- GRUP 4 : Financing -->
+              <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <button type="button" onclick="toggleCard(this)" class="w-full flex items-center gap-3 px-5 py-4 text-left border-l-4 border-sky-500">
+                  <span class="h-9 w-9 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-lg flex-none">🏦</span>
+                  <span class="flex-1">
+                    <span class="block font-bold text-slate-800">Grup 4 &middot; Struktur Pembiayaan (Financing)</span>
+                    <span class="block text-xs text-slate-400 font-medium">Komposisi modal &amp; pinjaman bank</span>
+                  </span>
+                  <svg class="chevron h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="card-body px-5 pb-5 space-y-4">
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Modal Sendiri / Equity</label>
+                      <div class="amount-field"><input id="porsiEquity" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Pinjaman Bank / Debt</label>
+                      <div class="amount-field"><input id="porsiDebt" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                    </div>
+                  </div>
+                  <p class="text-[11px] text-slate-400 -mt-1">Equity + Debt otomatis berjumlah 100%.</p>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Suku Bunga / Tahun</label>
+                      <div class="amount-field"><input id="sukuBunga" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Tenor Pinjaman</label>
+                      <div class="amount-field"><input id="tenor" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">Thn</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- MODUL TAMBAHAN : Estimasi Parkir (berbasis SRP) -->
+              <div class="bg-white rounded-2xl shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <button type="button" onclick="toggleCard(this)" class="w-full flex items-center gap-3 px-5 py-4 text-left border-l-4 border-violet-500">
+                  <span class="h-9 w-9 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center text-lg flex-none">🅿️</span>
+                  <span class="flex-1">
+                    <span class="block font-bold text-slate-800">Modul Bantu &middot; Estimasi Kapasitas &amp; Pendapatan Parkir</span>
+                    <span class="block text-xs text-slate-400 font-medium">Berbasis Satuan Ruang Parkir (Kepdirjen Hubdat &amp; PP 16/2021)</span>
+                  </span>
+                  <svg class="chevron h-5 w-5 text-slate-400 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="card-body px-5 pb-5 space-y-4 hidden">
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Luas Area Parkir (kotor)</label>
+                      <div class="amount-field"><input id="luasParkir" class="currency-input" inputmode="numeric" placeholder="0"><span class="affix affix-r">m²</span></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Standar SRP (Golongan)</label>
+                      <select id="srpGolongan" onchange="recompute()" class="w-full rounded-[.65rem] border border-slate-200 bg-white px-3 py-[.6rem] text-sm font-semibold text-slate-800 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 focus:outline-none">
+                        <option value="11.5">Gol. I — 11,50 m² (Kantor / Pendidikan)</option>
+                        <option value="12.5" selected>Gol. II — 12,50 m² (Mal / Ritel / Hotel / RS)</option>
+                        <option value="15">Gol. III — 15,00 m² (Difabel)</option>
+                        <option value="1.5">Sepeda Motor — 1,50 m²</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Faktor Sirkulasi &amp; RTH</label>
+                      <div class="amount-field"><input id="faktorSirkulasi" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Tarif Rata² per SRP / Hari</label>
+                      <div class="amount-field"><span class="affix">Rp</span><input id="tarifParkir" class="currency-input" inputmode="numeric" placeholder="0"></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Okupansi Parkir</label>
+                      <div class="amount-field"><input id="okupansiParkir" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">%</span></div>
+                    </div>
+                    <div>
+                      <label class="block text-sm font-medium text-slate-600 mb-1.5">Hari Operasi / Tahun</label>
+                      <div class="amount-field"><input id="hariOperasi" class="decimal-input" inputmode="decimal" placeholder="0"><span class="affix affix-r">hari</span></div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3">
+                    <div class="rounded-xl bg-violet-50 ring-1 ring-violet-100 px-4 py-3">
+                      <p class="text-xs font-semibold text-violet-500">Estimasi Kapasitas</p>
+                      <p id="out_kapasitasSRP" class="text-lg font-extrabold text-violet-700">0 <span class="text-xs font-semibold">SRP</span></p>
+                    </div>
+                    <div class="rounded-xl bg-violet-50 ring-1 ring-violet-100 px-4 py-3">
+                      <p class="text-xs font-semibold text-violet-500">Estimasi Pendapatan / Tahun</p>
+                      <p id="out_pendapatanParkir" class="text-lg font-extrabold text-violet-700">Rp 0</p>
+                    </div>
+                  </div>
+
+                  <button onclick="applyParkingRevenue()" class="w-full text-sm font-semibold px-4 py-2.5 rounded-xl bg-violet-600 text-white hover:bg-violet-700 active:scale-[.99] transition flex items-center justify-center gap-2">
+                    <span>➜</span> Gunakan sebagai "Pendapatan Ekstra" (Grup 2)
+                  </button>
+
+                  <details class="text-xs text-slate-500">
+                    <summary class="cursor-pointer font-semibold text-slate-600 select-none">Referensi Standar SRP</summary>
+                    <div class="mt-2 space-y-1 leading-relaxed">
+                      <p>• <b>Gol. I (2,30 × 5,00 m = 11,50 m²)</b> — karyawan kantor, pemerintahan, kampus (low turnover).</p>
+                      <p>• <b>Gol. II (2,50 × 5,00 m = 12,50 m²)</b> — pengunjung mal, ritel, hotel, rumah sakit (high turnover).</p>
+                      <p>• <b>Gol. III (3,00 × 5,00 m = 15,00 m²)</b> — penyandang disabilitas (akses kursi roda).</p>
+                      <p>• <b>Sepeda Motor</b> 0,75 × 2,00 m; <b>Bus/Truk</b> 3,40 × 12,50 m.</p>
+                      <p class="text-slate-400 italic">Sumber: Kepdirjen Hubdat 272/1996 &amp; 1998, Lampiran PP 16/2021.</p>
+                    </div>
+                  </details>
+                </div>
+              </div>
+
+              <!-- Tombol Hitung -->
+              <button onclick="recompute(true)" class="w-full text-base font-bold px-6 py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 text-white shadow-lg shadow-indigo-200 hover:from-indigo-700 hover:to-violet-700 active:scale-[.99] transition flex items-center justify-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m-6 4h6m-6 4h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/></svg>
+                Hitung Kelayakan Finansial
+              </button>
+            </section>
+
+            <!-- ============== KOLOM KANAN : DASHBOARD ============== -->
+            <aside class="lg:col-span-5">
+              <div id="dashboard" class="sticky-dash space-y-4">
+                <div id="verdictBanner" class="rounded-2xl p-5 text-white shadow-lg bg-slate-400 transition-colors">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-semibold uppercase tracking-wider opacity-80">Kesimpulan Kelayakan</p>
+                      <p id="verdictText" class="text-2xl font-extrabold mt-0.5">Menunggu Input</p>
+                    </div>
+                    <div id="verdictIcon" class="h-12 w-12 rounded-2xl bg-white/20 ring-1 ring-white/30 flex items-center justify-center text-2xl">⏳</div>
+                  </div>
+                  <div class="mt-3 h-2 rounded-full bg-white/25 overflow-hidden">
+                    <div id="verdictBar" class="h-full bg-white/90 rounded-full transition-all duration-500" style="width:0%"></div>
+                  </div>
+                  <p id="verdictSub" class="text-xs mt-2 opacity-90 font-medium">Skor agregat dari ROI, Cash-on-Cash &amp; Payback Period.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-4">
+                    <div class="flex items-center gap-2 text-slate-500"><span class="text-base">🧮</span><p class="text-xs font-semibold uppercase tracking-wide">NOI</p></div>
+                    <p id="m_noi" class="text-xl font-extrabold text-slate-800 mt-2 leading-tight">Rp 0</p>
+                    <p id="m_noi_sub" class="text-[11px] text-slate-400 mt-1 font-medium">Net Operating Income / tahun</p>
+                  </div>
+                  <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-4">
+                    <div class="flex items-center gap-2 text-slate-500"><span class="text-base">📊</span><p class="text-xs font-semibold uppercase tracking-wide">ROI</p></div>
+                    <p id="m_roi" class="text-2xl font-extrabold mt-2 leading-tight text-slate-800">0%</p>
+                    <p id="m_roi_sub" class="text-[11px] text-slate-400 mt-1 font-medium">Setara Cap Rate proyek</p>
+                  </div>
+                  <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-4">
+                    <div class="flex items-center gap-2 text-slate-500"><span class="text-base">💵</span><p class="text-xs font-semibold uppercase tracking-wide">Cash-on-Cash</p></div>
+                    <p id="m_coc" class="text-2xl font-extrabold mt-2 leading-tight text-slate-800">0%</p>
+                    <p id="m_coc_sub" class="text-[11px] text-slate-400 mt-1 font-medium">Return atas modal tunai</p>
+                  </div>
+                  <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-4">
+                    <div class="flex items-center gap-2 text-slate-500"><span class="text-base">⏱️</span><p class="text-xs font-semibold uppercase tracking-wide">Payback / BEP</p></div>
+                    <p id="m_payback" class="text-xl font-extrabold mt-2 leading-tight text-slate-800">—</p>
+                    <p id="m_payback_sub" class="text-[11px] text-slate-400 mt-1 font-medium">Waktu balik modal</p>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-5">
+                  <p class="text-sm font-bold text-slate-700 mb-3">Komposisi Gross Revenue</p>
+                  <div class="w-full h-6 rounded-lg overflow-hidden flex bg-slate-100 ring-1 ring-slate-200">
+                    <div id="bar_opex" class="h-full bg-amber-400 transition-all duration-500" style="width:0%"></div>
+                    <div id="bar_debt" class="h-full bg-indigo-500 transition-all duration-500" style="width:0%"></div>
+                    <div id="bar_cf" class="h-full bg-emerald-500 transition-all duration-500" style="width:0%"></div>
+                  </div>
+                  <div class="grid grid-cols-3 gap-2 mt-3 text-center">
+                    <div><span class="inline-block h-2.5 w-2.5 rounded-sm bg-amber-400 align-middle"></span><p class="text-[11px] text-slate-500 font-semibold mt-1">OpEx</p><p id="leg_opex" class="text-xs font-bold text-slate-700">0%</p></div>
+                    <div><span class="inline-block h-2.5 w-2.5 rounded-sm bg-indigo-500 align-middle"></span><p class="text-[11px] text-slate-500 font-semibold mt-1">Cicilan</p><p id="leg_debt" class="text-xs font-bold text-slate-700">0%</p></div>
+                    <div><span class="inline-block h-2.5 w-2.5 rounded-sm bg-emerald-500 align-middle"></span><p class="text-[11px] text-slate-500 font-semibold mt-1">Arus Kas</p><p id="leg_cf" class="text-xs font-bold text-slate-700">0%</p></div>
+                  </div>
+                </div>
+
+                <div class="bg-white rounded-2xl ring-1 ring-slate-200 shadow-sm p-5">
+                  <p class="text-sm font-bold text-slate-700 mb-3">Rincian Pendukung</p>
+                  <dl class="divide-y divide-slate-100 text-sm">
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Total Biaya Investasi</dt><dd id="s_investasi" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Gross Revenue Tahunan</dt><dd id="s_gross" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Total Biaya Operasional</dt><dd id="s_opex" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Modal Sendiri (Equity)</dt><dd id="s_equity" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Pinjaman Bank (Debt)</dt><dd id="s_debt" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Cicilan Pinjaman / Tahun</dt><dd id="s_debtservice" class="font-semibold text-slate-800">Rp 0</dd></div>
+                    <div class="flex justify-between py-2"><dt class="text-slate-500">Arus Kas Setelah Cicilan</dt><dd id="s_cashflow" class="font-semibold text-slate-800">Rp 0</dd></div>
+                  </dl>
+                </div>
+
+                <p class="text-[11px] text-slate-400 leading-relaxed px-1">
+                  ⚠️ <b>Disclaimer:</b> Purwarupa untuk <i>screening</i> kelayakan awal. Cicilan dihitung anuitas (PMT) atas pokok pinjaman. Belum memperhitungkan pajak, inflasi, depresiasi, nilai terminal, maupun PBJT/retribusi daerah. Bukan nasihat investasi.
+                </p>
+              </div>
+            </aside>
+
+          </div>
+        </main>
+        <!-- ===== AKHIR KODE ROI ===== -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ======================================================================
+       TOOL 2 · KALKULATOR KAPASITAS PARKIR (terhubung ke backend FastAPI)
+       ----------------------------------------------------------------------
+       Frontend asli Anda berbasis Next.js/React, jadi TIDAK bisa di-paste apa
+       adanya ke halaman statis. Panel di bawah ini adalah frontend ringan
+       (vanilla JS) yang memanggil LANGSUNG compute engine FastAPI Anda.
+       Lihat blok "SCRIPT PARKIR" di akhir file untuk logika fetch-nya, dan
+       kartu "Cara menghubungkan backend" di bawah untuk pengaturan CORS.
+
+       ALTERNATIF — kalau ingin tetap memakai UI Next.js Anda yang sudah jadi,
+       ganti isi panel ini dengan iframe:
+         <iframe src="http://localhost:3000" class="w-full" style="height:1400px;border:0"></iframe>
+       (jalankan `npm run dev` di folder frontend lebih dulu).
+  ======================================================================= -->
+  <section id="panel-parkir" class="tool-panel hidden">
+    <div class="card overflow-hidden">
+      <div class="flex items-center gap-3 px-6 py-5 border-b border-line bg-soft">
+        <span class="h-10 w-10 rounded-xl bg-violet-600 text-white flex items-center justify-center text-xl flex-none">🅿️</span>
+        <div class="flex-1">
+          <h2 class="font-display text-xl text-navy">Kalkulator Kapasitas Parkir</h2>
+          <p class="text-xs text-steel font-medium">Compute engine FastAPI · regulasi SRP (Kepdirjen Hubdat 1996/1998, PP 16/2021)</p>
+        </div>
+        <span id="pk_status" class="pk-badge pk-wait">mengecek…</span>
+      </div>
+
+      <div class="p-5 sm:p-6 grid lg:grid-cols-2 gap-6">
+        <!-- FORM -->
+        <div class="space-y-4">
+          <div class="pk-field">
+            <label>URL Compute Engine (backend)</label>
+            <input id="pk_engine" type="text" value="http://127.0.0.1:8000" spellcheck="false">
+          </div>
+          <div class="pk-field">
+            <label>Tipe Bangunan</label>
+            <select id="pk_type">
+              <option value="office">Perkantoran (office)</option>
+              <option value="mall">Mal / Pusat Perbelanjaan (mall)</option>
+              <option value="retail">Pertokoan / Ritel (retail)</option>
+              <option value="hospital">Rumah Sakit (hospital)</option>
+            </select>
+          </div>
+
+          <!-- field komersial -->
+          <div id="pk_commercial" class="space-y-4">
+            <div class="pk-field">
+              <label>GFA — Gross Floor Area (m²)</label>
+              <input id="pk_gfa" inputmode="numeric" placeholder="contoh: 20000" value="20000">
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="pk-field">
+                <label>Rasio SRP / 100 m² <span class="text-steel font-normal">(opsional)</span></label>
+                <input id="pk_ratio" inputmode="decimal" placeholder="default tabel">
+              </div>
+              <div class="pk-field">
+                <label>Override efisiensi NFA/GFA <span class="text-steel font-normal">(opsional)</span></label>
+                <input id="pk_eff" inputmode="decimal" placeholder="mis. 0.65">
+              </div>
+            </div>
+          </div>
+
+          <!-- field rumah sakit -->
+          <div id="pk_hospital" class="space-y-4 hidden">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="pk-field">
+                <label>Jumlah Tempat Tidur (beds)</label>
+                <input id="pk_beds" inputmode="numeric" placeholder="contoh: 250" value="250">
+              </div>
+              <div class="pk-field">
+                <label>Derajat Polinomial</label>
+                <select id="pk_degree"><option value="1">1 (linear)</option><option value="2" selected>2 (kuadratik)</option><option value="3">3 (kubik)</option></select>
+              </div>
+            </div>
+          </div>
+
+          <button id="pk_calc" class="btn w-full">Hitung Kapasitas</button>
+
+          <div id="pk_err" class="hidden note" style="background:#fdecec;border-color:#f3c9c4;color:#8a2b21">
+            <b>Gagal menghitung.</b><br><span id="pk_errmsg"></span>
+          </div>
+
+          <details class="note">
+            <summary class="cursor-pointer font-semibold select-none" style="color:#1c4099">Cara menghubungkan backend (penting)</summary>
+            <div class="mt-2 space-y-2">
+              <p><b>1. Jalankan engine</b> (dari <code>parking-capacity-calculator/backend</code>):<br>
+              <code>.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload</code> → <code>http://127.0.0.1:8000</code></p>
+              <p><b>2. Izinkan origin halaman ini di CORS.</b> Backend hanya mengizinkan <code>localhost:3000</code>. Buka <code>backend/app/core/config.py</code> dan tambahkan origin tempat <code>Tools.html</code> dibuka (mis. <code>http://localhost:8123</code> / <code>http://127.0.0.1:5500</code>) ke <code>cors_origins</code>, atau untuk dev set <code>allow_origins=["*"]</code> di <code>app/main.py</code>.</p>
+              <p><b>3. Endpoint yang dipakai:</b> <code>POST /api/v1/commercial-parking</code> (office/mall/retail) &amp; <code>POST /api/v1/hospital-parking</code> (rumah sakit).</p>
+            </div>
+          </details>
+        </div>
+
+        <!-- HASIL -->
+        <div>
+          <div id="pk_out" class="hidden space-y-4">
+            <div class="rounded-2xl p-5 text-white" style="background:linear-gradient(155deg,#1b2c50,#14213D)">
+              <p class="text-xs font-semibold uppercase tracking-wider" style="color:#9db2d8">Total Kebutuhan SRP</p>
+              <p class="font-display font-light leading-none mt-1"><span id="pk_srp" style="font-size:54px">0</span> <span class="text-lg">SRP</span></p>
+              <p class="text-xs mt-2" style="color:#cdd8ee">Satuan Ruang Parkir hasil perhitungan engine (NFA → rasio legal).</p>
+            </div>
+            <div class="bg-soft rounded-2xl border border-line p-4">
+              <dl id="pk_detail"></dl>
+            </div>
+            <div id="pk_warn" class="hidden note" style="background:#fdf6e9;border-color:#f0dcb0;color:#8a6312"></div>
+            <details class="text-xs text-steel">
+              <summary class="cursor-pointer font-semibold select-none">Lihat respons JSON mentah dari engine</summary>
+              <pre id="pk_raw" class="raw mt-2"></pre>
+            </details>
+          </div>
+          <div id="pk_placeholder" class="h-full min-h-[260px] rounded-2xl border-2 border-dashed border-line flex flex-col items-center justify-center text-center p-6 text-steel">
+            <span class="text-4xl mb-3">🅿️</span>
+            <p class="font-semibold text-navy">Hasil perhitungan tampil di sini</p>
+            <p class="text-sm mt-1 max-w-xs">Isi parameter lalu klik <b>Hitung Kapasitas</b>. Pastikan compute engine berjalan (lihat status di kanan atas).</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="border-t border-line mt-10">
+  <div class="max-w-[1240px] mx-auto px-6 py-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-steel">
+    <div class="brand text-[20px] text-navy">natar<span class="text-royal">.</span></div>
+    <p>Toolkit internal NataR Studio · ROI/NOI/BEP &amp; Kapasitas Parkir · Prototipe.</p>
+    <a href="index.html#/works" class="hover:text-royal">← Kembali ke Works</a>
+  </div>
+</footer>
+
+<!-- =========================================================================
+     SCRIPT TAB SWITCHER (scoped, tidak bertabrakan dengan script ROI)
+     ========================================================================= -->
+<script>
+(function(){
+  const panels = {roi:document.getElementById('panel-roi'), parkir:document.getElementById('panel-parkir')};
+  document.getElementById('toolswitch').addEventListener('click', e=>{
+    const b=e.target.closest('button[data-tool]'); if(!b) return;
+    document.querySelectorAll('#toolswitch button').forEach(x=>x.classList.toggle('active', x===b));
+    Object.entries(panels).forEach(([k,el])=>el.classList.toggle('hidden', k!==b.dataset.tool));
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+})();
+</script>
+
+<!-- =========================================================================
+     SCRIPT ROI  (PASTE / GANTI logika kalkulator ROI Anda di antara penanda)
+     — dibiarkan global karena handler onclick di markup ROI membutuhkannya.
+     ========================================================================= -->
+<script>
+/* ===== AWAL SCRIPT ROI ===== */
+function num(id){const el=document.getElementById(id);if(!el)return 0;const d=(el.value||'').toString().replace(/[^\d]/g,'');return d?parseInt(d,10):0;}
+function dec(id){const el=document.getElementById(id);if(!el)return 0;let v=(el.value||'').toString().trim().replace(',', '.').replace(/[^0-9.]/g,'');const n=parseFloat(v);return isNaN(n)?0:n;}
+function clamp(v,min,max){return Math.min(max,Math.max(min,v));}
+function round2(v){return Math.round(v*100)/100;}
+function rp(n){if(!isFinite(n))return '—';const neg=n<0;const val=Math.round(Math.abs(n));return (neg?'-Rp ':'Rp ')+val.toLocaleString('id-ID');}
+function compact(n){if(!isFinite(n))return '—';const neg=n<0;const abs=Math.abs(n);let s;if(abs>=1e12)s=(abs/1e12).toLocaleString('id-ID',{maximumFractionDigits:2})+' Triliun';else if(abs>=1e9)s=(abs/1e9).toLocaleString('id-ID',{maximumFractionDigits:2})+' Miliar';else if(abs>=1e6)s=(abs/1e6).toLocaleString('id-ID',{maximumFractionDigits:1})+' Juta';else return rp(n);return (neg?'-Rp ':'Rp ')+s;}
+function formatCurrencyInput(el){const before=el.value;const caret=el.selectionStart||before.length;let digits=before.replace(/[^\d]/g,'');if(digits.length>15)digits=digits.slice(0,15);if(digits===''){el.value='';return;}const formatted=parseInt(digits,10).toLocaleString('id-ID');el.value=formatted;const diff=formatted.length-before.length;const pos=clamp(caret+diff,0,formatted.length);try{el.setSelectionRange(pos,pos);}catch(e){}}
+function annualDebtService(principal,annualRatePct,tenorYears){if(principal<=0||tenorYears<=0)return 0;const r=annualRatePct/100;if(r===0)return principal/tenorYears;const factor=Math.pow(1+r,tenorYears);return principal*(r*factor)/(factor-1);}
+function calculate(){
+  const hargaLahan=num('hargaLahan'),biayaKonstruksi=num('biayaKonstruksi'),biayaParkir=num('biayaParkir'),biayaLegal=num('biayaLegal');
+  const totalInvestasi=hargaLahan+biayaKonstruksi+biayaParkir+biayaLegal;
+  const nla=num('nla'),hargaSewa=num('hargaSewa'),okupansi=clamp(dec('okupansi'),0,100),pendapatanEkstra=num('pendapatanEkstra');
+  const grossRevenue=(nla*hargaSewa*(okupansi/100))+pendapatanEkstra;
+  const totalOpex=num('biayaPemeliharaan')+num('biayaManajemen')+num('pbbAsuransi');
+  const porsiEquity=clamp(dec('porsiEquity'),0,100),porsiDebt=clamp(dec('porsiDebt'),0,100),sukuBunga=dec('sukuBunga'),tenor=dec('tenor');
+  const noi=grossRevenue-totalOpex;
+  const roi=totalInvestasi>0?(noi/totalInvestasi)*100:0;
+  const equityAmount=totalInvestasi*(porsiEquity/100),debtAmount=totalInvestasi*(porsiDebt/100);
+  const debtService=annualDebtService(debtAmount,sukuBunga,tenor);
+  const cashFlow=noi-debtService;
+  const coc=equityAmount>0?(cashFlow/equityAmount)*100:0;
+  const paybackYears=noi>0?totalInvestasi/noi:Infinity;
+  setText('out_totalInvestasi',rp(totalInvestasi));setText('out_grossRevenue',rp(grossRevenue));setText('out_totalOpex',rp(totalOpex));
+  setText('m_noi',compact(noi));paint('m_noi',noi>=0?'text-emerald-600':'text-red-600');setText('m_noi_sub','Net Operating Income / tahun');
+  setText('m_roi',formatPct(roi));paint('m_roi',tierColorHigh(roi,10,6));
+  setText('m_coc',formatPct(coc));paint('m_coc',tierColorHigh(coc,10,5));
+  const pb=formatPayback(paybackYears);setText('m_payback',pb.text);setText('m_payback_sub',isFinite(paybackYears)?('≈ '+paybackYears.toFixed(1)+' tahun'):'NOI ≤ 0 — tidak balik modal');paint('m_payback',tierColorLow(paybackYears,10,15));
+  setText('s_investasi',rp(totalInvestasi));setText('s_gross',rp(grossRevenue));setText('s_opex',rp(totalOpex));setText('s_equity',rp(equityAmount));setText('s_debt',rp(debtAmount));setText('s_debtservice',rp(debtService));setText('s_cashflow',rp(cashFlow));paint('s_cashflow',cashFlow>=0?'text-emerald-600':'text-red-600');
+  renderComposition(grossRevenue,totalOpex,debtService,cashFlow);
+  renderVerdict(roi,coc,paybackYears,totalInvestasi,noi);
+}
+function setText(id,text){const el=document.getElementById(id);if(el)el.textContent=text;}
+function paint(id,colorClass){const el=document.getElementById(id);if(!el)return;el.className=el.className.replace(/text-(emerald|red|amber|slate)-\d{3}/g,'').trim();el.classList.add(colorClass);}
+function formatPct(v){if(!isFinite(v))return '—';return (v).toLocaleString('id-ID',{maximumFractionDigits:2})+'%';}
+function tierColorHigh(v,goodAt,midAt){if(!isFinite(v)||v>=goodAt)return v>=goodAt?'text-emerald-600':'text-slate-800';if(v>=midAt)return 'text-amber-500';return 'text-red-600';}
+function tierColorLow(v,goodBelow,midBelow){if(!isFinite(v))return 'text-red-600';if(v<goodBelow)return 'text-emerald-600';if(v<=midBelow)return 'text-amber-500';return 'text-red-600';}
+function formatPayback(years){if(!isFinite(years)||years<=0)return {text:'Tidak Tercapai'};let y=Math.floor(years);let m=Math.round((years-y)*12);if(m===12){y+=1;m=0;}return {text:y+' Tahun '+m+' Bulan'};}
+function renderComposition(gross,opex,debt,cf){const denom=Math.max(gross,opex+debt,1);const opexPct=clamp(opex/denom*100,0,100),debtPct=clamp(debt/denom*100,0,100),cfPct=cf>0?clamp(cf/denom*100,0,100):0;document.getElementById('bar_opex').style.width=opexPct+'%';document.getElementById('bar_debt').style.width=debtPct+'%';document.getElementById('bar_cf').style.width=cfPct+'%';const base=gross>0?gross:1;setText('leg_opex',(opex/base*100).toFixed(0)+'%');setText('leg_debt',(debt/base*100).toFixed(0)+'%');setText('leg_cf',(cf/base*100).toFixed(0)+'%');const cfLeg=document.getElementById('leg_cf');cfLeg.className='text-xs font-bold '+(cf>=0?'text-emerald-600':'text-red-600');}
+function renderVerdict(roi,coc,payback,totalInvestasi,noi){const banner=document.getElementById('verdictBanner');const bar=document.getElementById('verdictBar');if(totalInvestasi<=0||noi===0){banner.className='rounded-2xl p-5 text-white shadow-lg bg-slate-400 transition-colors';setText('verdictText','Menunggu Input');document.getElementById('verdictIcon').textContent='⏳';setText('verdictSub','Lengkapi parameter untuk melihat kesimpulan kelayakan.');bar.style.width='0%';return;}let score=0;score+=roi>=10?2:(roi>=6?1:0);score+=coc>=10?2:(coc>=5?1:0);score+=(isFinite(payback)&&payback<10)?2:((isFinite(payback)&&payback<=15)?1:0);const pct=Math.round(score/6*100);bar.style.width=pct+'%';let label,color,icon,sub;if(score>=5){label='Sangat Layak';color='from-emerald-600 to-green-600';icon='✅';sub='Indikator finansial kuat di hampir seluruh metrik.';}else if(score>=3){label='Cukup Layak';color='from-amber-500 to-orange-500';icon='⚠️';sub='Layak bersyarat — perhatikan metrik yang berwarna kuning/merah.';}else{label='Kurang Layak';color='from-rose-600 to-red-600';icon='⛔';sub='Perlu kajian ulang struktur biaya, pendapatan, atau pembiayaan.';}banner.className='rounded-2xl p-5 text-white shadow-lg bg-gradient-to-r '+color+' transition-colors';setText('verdictText',label);document.getElementById('verdictIcon').textContent=icon;setText('verdictSub',sub+'  (Skor '+score+'/6)');}
+let lastParkingRevenue=0;
+function calcParking(){const luas=num('luasParkir');const srp=parseFloat(document.getElementById('srpGolongan').value)||12.5;const sirkulasi=clamp(dec('faktorSirkulasi'),0,95);const tarif=num('tarifParkir');const okupansiP=clamp(dec('okupansiParkir'),0,100);const hari=dec('hariOperasi');const efektif=luas*(1-sirkulasi/100);const kapasitas=srp>0?Math.floor(efektif/srp):0;const pendapatan=kapasitas*tarif*(okupansiP/100)*hari;lastParkingRevenue=Math.round(pendapatan);const kapEl=document.getElementById('out_kapasitasSRP');kapEl.innerHTML=kapasitas.toLocaleString('id-ID')+' <span class="text-xs font-semibold">SRP</span>';setText('out_pendapatanParkir',rp(pendapatan));}
+function applyParkingRevenue(){const field=document.getElementById('pendapatanEkstra');field.value=lastParkingRevenue.toLocaleString('id-ID');const wrap=field.closest('.amount-field');wrap.classList.add('flash');setTimeout(()=>wrap.classList.remove('flash'),600);recompute();}
+function recompute(flash){calculate();calcParking();if(flash){const d=document.getElementById('dashboard');d.classList.remove('flash');void d.offsetWidth;d.classList.add('flash');}}
+function syncFinance(source){const e=document.getElementById('porsiEquity');const d=document.getElementById('porsiDebt');if(source==='equity'){const v=clamp(dec('porsiEquity'),0,100);d.value=round2(100-v);}else{const v=clamp(dec('porsiDebt'),0,100);e.value=round2(100-v);}}
+function toggleCard(header){const body=header.nextElementSibling;const icon=header.querySelector('.chevron');body.classList.toggle('hidden');icon.classList.toggle('rotate-180');}
+const SAMPLE={hargaLahan:40000000000,biayaKonstruksi:65000000000,biayaParkir:10000000000,biayaLegal:5000000000,nla:10000,hargaSewa:2000000,okupansi:88,pendapatanEkstra:3500000000,biayaPemeliharaan:2500000000,biayaManajemen:2000000000,pbbAsuransi:1500000000,porsiEquity:40,porsiDebt:60,sukuBunga:10,tenor:12,luasParkir:6000,faktorSirkulasi:30,tarifParkir:25000,okupansiParkir:65,hariOperasi:360};
+const CURRENCY_FIELDS=['hargaLahan','biayaKonstruksi','biayaParkir','biayaLegal','nla','hargaSewa','pendapatanEkstra','biayaPemeliharaan','biayaManajemen','pbbAsuransi','luasParkir','tarifParkir'];
+const DECIMAL_FIELDS=['okupansi','porsiEquity','porsiDebt','sukuBunga','tenor','faktorSirkulasi','okupansiParkir','hariOperasi'];
+function loadSample(){for(const k in SAMPLE){const el=document.getElementById(k);if(!el)continue;if(CURRENCY_FIELDS.includes(k))el.value=SAMPLE[k].toLocaleString('id-ID');else el.value=SAMPLE[k];}document.getElementById('srpGolongan').value='12.5';recompute(true);}
+function clearAll(){[...CURRENCY_FIELDS,...DECIMAL_FIELDS].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});recompute();}
+window.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.currency-input').forEach(el=>{el.addEventListener('input',()=>{formatCurrencyInput(el);recompute();});});
+  document.querySelectorAll('.decimal-input').forEach(el=>{el.addEventListener('input',()=>recompute());});
+  document.getElementById('porsiEquity').addEventListener('input',()=>{syncFinance('equity');recompute();});
+  document.getElementById('porsiDebt').addEventListener('input',()=>{syncFinance('debt');recompute();});
+  loadSample();
+});
+/* ===== AKHIR SCRIPT ROI ===== */
+</script>
+
+<!-- =========================================================================
+     SCRIPT PARKIR — frontend ringan yang memanggil backend FastAPI Anda.
+     Semua di dalam IIFE (variabel pk_*) agar tidak bentrok dengan script ROI.
+     ========================================================================= -->
+<script>
+(function(){
+  const $ = s=>document.querySelector(s);
+  const fmt  = n => (n==null||isNaN(n))?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:0});
+  const fmt1 = n => (n==null||isNaN(n))?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:1});
+  const fmt4 = n => (n==null||isNaN(n))?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:4});
+
+  let engine = 'http://127.0.0.1:8000';
+  const urlInput = $('#pk_engine');
+  const typeSel  = $('#pk_type');
+
+  // --- panggilan ke compute engine (sesuaikan ENDPOINT bila URL backend berbeda) ---
+  async function callEngine(path, body){
+    const res = await fetch(engine + '/api/v1/' + path, {
+      method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify(body)
+    });
+    const text = await res.text();
+    let data = {}; try { data = text ? JSON.parse(text) : {}; } catch { data = {detail:text}; }
+    if(!res.ok){
+      const d = data.detail;
+      throw new Error(Array.isArray(d) ? d.map(x=>x.msg||JSON.stringify(x)).join('; ')
+                     : (typeof d==='string' ? d : ('Permintaan gagal ('+res.status+')')));
+    }
+    return data;
+  }
+
+  async function ping(){
+    const b = $('#pk_status'); b.textContent='mengecek…'; b.className='pk-badge pk-wait';
+    try { const r = await fetch(engine + '/health'); if(!r.ok) throw 0; b.textContent='engine online'; b.className='pk-badge pk-ok'; }
+    catch { b.textContent='engine offline'; b.className='pk-badge pk-err'; }
+  }
+
+  function syncFields(){
+    const hosp = typeSel.value==='hospital';
+    $('#pk_commercial').classList.toggle('hidden', hosp);
+    $('#pk_hospital').classList.toggle('hidden', !hosp);
+  }
+
+  const rowHtml = (k,v)=>`<div class="flex justify-between gap-4 py-2 border-b border-line last:border-0 text-sm"><dt class="text-steel">${k}</dt><dd class="font-semibold text-navy text-right">${v}</dd></div>`;
+
+  function show(d){
+    $('#pk_placeholder').classList.add('hidden');
+    $('#pk_out').classList.remove('hidden');
+    $('#pk_raw').textContent = JSON.stringify(d,null,2);
+    const ws = d.warnings;
+    const warn = $('#pk_warn');
+    if(ws && ws.length){ warn.classList.remove('hidden'); warn.innerHTML = ws.map(w=>'⚠ '+w).join('<br>'); }
+    else warn.classList.add('hidden');
+  }
+
+  function renderCommercial(d){
+    const ea = d.effective_area || {};
+    $('#pk_srp').textContent = fmt(d.total_srp);
+    $('#pk_detail').innerHTML =
+      rowHtml('NFA (area efektif)', fmt(ea.nfa_m2)+' m²') +
+      rowHtml('Efisiensi NFA/GFA', (ea.efficiency_ratio!=null?(ea.efficiency_ratio*100).toFixed(1):'—')+'%') +
+      rowHtml('GFA', fmt(ea.gfa_m2)+' m²') +
+      rowHtml('Area pasif terpotong', fmt(ea.deducted_area_m2)+' m²') +
+      rowHtml('Rasio dipakai', fmt1(d.ratio_per_100m2)+' SRP/100m² ('+(d.ratio_source||'')+')') +
+      rowHtml('Rentang legal', fmt1(d.ratio_band&&d.ratio_band.min)+' – '+fmt1(d.ratio_band&&d.ratio_band.max)) +
+      rowHtml('Kelas SRP', d.srp_class||'—') +
+      rowHtml('SRP mentah', fmt1(d.raw_total_srp));
+    show(d);
+  }
+  function renderHospital(d){
+    $('#pk_srp').textContent = fmt(d.total_srp);
+    $('#pk_detail').innerHTML =
+      rowHtml('Rasio SRP / tempat tidur', fmt1(d.ratio_srp_per_bed)) +
+      rowHtml('SRP mentah', fmt1(d.raw_total_srp)) +
+      rowHtml('Estimasi luas parkir', fmt(d.estimated_car_park_area_m2)+' m²') +
+      rowHtml('Luas per SRP', fmt1(d.stall_area_m2)+' m²') +
+      rowHtml('Kelas SRP', d.srp_class||'—') +
+      rowHtml('R² model', d.fit?fmt4(d.fit.r_squared):'—') +
+      rowHtml('Ekstrapolasi di luar data', (d.flags&&d.flags.extrapolated)?'Ya':'Tidak');
+    show(d);
+  }
+
+  async function run(){
+    const err = $('#pk_err'); err.classList.add('hidden');
+    const btn = $('#pk_calc'); btn.disabled=true; btn.textContent='Menghitung…';
+    try{
+      if(typeSel.value==='hospital'){
+        const beds = parseInt($('#pk_beds').value)||0;
+        const degree = parseInt($('#pk_degree').value)||2;
+        if(beds<=0) throw new Error('Jumlah tempat tidur harus lebih dari 0.');
+        renderHospital(await callEngine('hospital-parking', {beds, degree}));
+      } else {
+        const gfa = parseFloat(($('#pk_gfa').value||'').toString().replace(/[^\d.]/g,''))||0;
+        if(gfa<=0) throw new Error('GFA harus lebih dari 0.');
+        const body = {gfa, building_type: typeSel.value};
+        const ratio = parseFloat($('#pk_ratio').value); if(!isNaN(ratio)&&ratio>0) body.ratio_per_100m2 = ratio;
+        const eff = parseFloat($('#pk_eff').value);     if(!isNaN(eff)&&eff>0)   body.efficiency_override = eff;
+        renderCommercial(await callEngine('commercial-parking', body));
+      }
+    }catch(e){
+      $('#pk_out').classList.add('hidden'); $('#pk_placeholder').classList.remove('hidden');
+      err.classList.remove('hidden');
+      const msg = String(e.message||e);
+      const isNet = /Failed to fetch|NetworkError|load failed|ERR_/i.test(msg);
+      $('#pk_errmsg').innerHTML = isNet
+        ? 'Tidak bisa menghubungi engine di <b>'+engine+'</b>.<br>1) Pastikan backend berjalan (<code>uvicorn app.main:app --reload</code>).<br>2) Tambahkan origin halaman ini ke <code>cors_origins</code> di <code>backend/app/core/config.py</code> (atau <code>allow_origins=["*"]</code> untuk dev).'
+        : msg;
+    }finally{ btn.disabled=false; btn.textContent='Hitung Kapasitas'; }
+  }
+
+  urlInput.addEventListener('change', ()=>{ engine = urlInput.value.trim().replace(/\/+$/,''); ping(); });
+  typeSel.addEventListener('change', syncFields);
+  $('#pk_calc').addEventListener('click', run);
+  syncFields(); ping();
+})();
+</script>
+</body>
+</html>
