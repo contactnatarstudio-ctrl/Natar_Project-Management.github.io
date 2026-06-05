@@ -467,103 +467,17 @@ tailwind.config = {
   <section id="panel-parkir" class="tool-panel hidden">
     <div class="card overflow-hidden">
       <div class="flex items-center gap-3 px-6 py-5 border-b border-line bg-soft">
-        <span class="h-10 w-10 rounded-xl bg-violet-600 text-white flex items-center justify-center text-xl flex-none">🅿️</span>
+        <span class="h-10 w-10 rounded-xl bg-royal text-white flex items-center justify-center text-xl flex-none">🅿️</span>
         <div class="flex-1">
           <h2 class="font-display text-xl text-navy">Kalkulator Kapasitas Parkir</h2>
-          <p class="text-xs text-steel font-medium">Compute engine FastAPI · regulasi SRP (Kepdirjen Hubdat 1996/1998, PP 16/2021)</p>
+          <p class="text-xs text-steel font-medium">Versi satu-file (offline) · 100% di browser · tanpa backend · SRP Kepdirjen Hubdat 1996/1998 &amp; PP 16/2021</p>
         </div>
-        <span id="pk_status" class="pk-badge pk-wait">mengecek…</span>
+        <a href="parking-calculator.html" target="_blank" rel="noopener" class="btn ghost sm">Buka penuh ↗</a>
       </div>
 
-      <div class="p-5 sm:p-6 grid lg:grid-cols-2 gap-6">
-        <!-- FORM -->
-        <div class="space-y-4">
-          <div class="pk-field">
-            <label>URL Compute Engine (backend)</label>
-            <input id="pk_engine" type="text" value="http://127.0.0.1:8000" spellcheck="false">
-          </div>
-          <div class="pk-field">
-            <label>Tipe Bangunan</label>
-            <select id="pk_type">
-              <option value="office">Perkantoran (office)</option>
-              <option value="mall">Mal / Pusat Perbelanjaan (mall)</option>
-              <option value="retail">Pertokoan / Ritel (retail)</option>
-              <option value="hospital">Rumah Sakit (hospital)</option>
-            </select>
-          </div>
-
-          <!-- field komersial -->
-          <div id="pk_commercial" class="space-y-4">
-            <div class="pk-field">
-              <label>GFA — Gross Floor Area (m²)</label>
-              <input id="pk_gfa" inputmode="numeric" placeholder="contoh: 20000" value="20000">
-            </div>
-            <div class="grid grid-cols-2 gap-4">
-              <div class="pk-field">
-                <label>Rasio SRP / 100 m² <span class="text-steel font-normal">(opsional)</span></label>
-                <input id="pk_ratio" inputmode="decimal" placeholder="default tabel">
-              </div>
-              <div class="pk-field">
-                <label>Override efisiensi NFA/GFA <span class="text-steel font-normal">(opsional)</span></label>
-                <input id="pk_eff" inputmode="decimal" placeholder="mis. 0.65">
-              </div>
-            </div>
-          </div>
-
-          <!-- field rumah sakit -->
-          <div id="pk_hospital" class="space-y-4 hidden">
-            <div class="grid grid-cols-2 gap-4">
-              <div class="pk-field">
-                <label>Jumlah Tempat Tidur (beds)</label>
-                <input id="pk_beds" inputmode="numeric" placeholder="contoh: 250" value="250">
-              </div>
-              <div class="pk-field">
-                <label>Derajat Polinomial</label>
-                <select id="pk_degree"><option value="1">1 (linear)</option><option value="2" selected>2 (kuadratik)</option><option value="3">3 (kubik)</option></select>
-              </div>
-            </div>
-          </div>
-
-          <button id="pk_calc" class="btn w-full">Hitung Kapasitas</button>
-
-          <div id="pk_err" class="hidden note" style="background:#fdecec;border-color:#f3c9c4;color:#8a2b21">
-            <b>Gagal menghitung.</b><br><span id="pk_errmsg"></span>
-          </div>
-
-          <details class="note">
-            <summary class="cursor-pointer font-semibold select-none" style="color:#1c4099">Cara menghubungkan backend (penting)</summary>
-            <div class="mt-2 space-y-2">
-              <p><b>1. Jalankan engine</b> (dari <code>parking-capacity-calculator/backend</code>):<br>
-              <code>.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload</code> → <code>http://127.0.0.1:8000</code></p>
-              <p><b>2. Izinkan origin halaman ini di CORS.</b> Backend hanya mengizinkan <code>localhost:3000</code>. Buka <code>backend/app/core/config.py</code> dan tambahkan origin tempat <code>Tools.html</code> dibuka (mis. <code>http://localhost:8123</code> / <code>http://127.0.0.1:5500</code>) ke <code>cors_origins</code>, atau untuk dev set <code>allow_origins=["*"]</code> di <code>app/main.py</code>.</p>
-              <p><b>3. Endpoint yang dipakai:</b> <code>POST /api/v1/commercial-parking</code> (office/mall/retail) &amp; <code>POST /api/v1/hospital-parking</code> (rumah sakit).</p>
-            </div>
-          </details>
-        </div>
-
-        <!-- HASIL -->
-        <div>
-          <div id="pk_out" class="hidden space-y-4">
-            <div class="rounded-2xl p-5 text-white" style="background:linear-gradient(155deg,#1b2c50,#14213D)">
-              <p class="text-xs font-semibold uppercase tracking-wider" style="color:#9db2d8">Total Kebutuhan SRP</p>
-              <p class="font-display font-light leading-none mt-1"><span id="pk_srp" style="font-size:54px">0</span> <span class="text-lg">SRP</span></p>
-              <p class="text-xs mt-2" style="color:#cdd8ee">Satuan Ruang Parkir hasil perhitungan engine (NFA → rasio legal).</p>
-            </div>
-            <div class="bg-soft rounded-2xl border border-line p-4">
-              <dl id="pk_detail"></dl>
-            </div>
-            <div id="pk_warn" class="hidden note" style="background:#fdf6e9;border-color:#f0dcb0;color:#8a6312"></div>
-            <details class="text-xs text-steel">
-              <summary class="cursor-pointer font-semibold select-none">Lihat respons JSON mentah dari engine</summary>
-              <pre id="pk_raw" class="raw mt-2"></pre>
-            </details>
-          </div>
-          <div id="pk_placeholder" class="h-full min-h-[260px] rounded-2xl border-2 border-dashed border-line flex flex-col items-center justify-center text-center p-6 text-steel">
-            <span class="text-4xl mb-3">🅿️</span>
-            <p class="font-semibold text-navy">Hasil perhitungan tampil di sini</p>
-            <p class="text-sm mt-1 max-w-xs">Isi parameter lalu klik <b>Hitung Kapasitas</b>. Pastikan compute engine berjalan (lihat status di kanan atas).</p>
-          </div>
-        </div>
+      <div class="p-3 sm:p-4">
+        <iframe title="Kalkulator Kapasitas Parkir (standalone)" src="parking-calculator.html" style="width:100%;height:1180px;border:0;display:block;border-radius:12px;background:#fff"></iframe>
+        <p class="text-xs text-steel px-2 pt-3">⚡ Berjalan 100% di browser (tanpa server) — aman untuk GitHub Pages. Sumber: <span class="font-mono">parking-calculator.html</span>. Klik <b>Buka penuh ↗</b> di atas untuk tampilan layar penuh.</p>
       </div>
     </div>
   </section>
@@ -665,6 +579,7 @@ window.addEventListener('DOMContentLoaded',()=>{
      ========================================================================= -->
 <script>
 (function(){
+  if(!document.getElementById('pk_type')) return;  /* Panel parkir kini iframe ke parking-calculator.html (standalone, tanpa backend) — script backend lama dinonaktifkan. */
   const $ = s=>document.querySelector(s);
   const fmt  = n => (n==null||isNaN(n))?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:0});
   const fmt1 = n => (n==null||isNaN(n))?'—':Number(n).toLocaleString('id-ID',{maximumFractionDigits:1});

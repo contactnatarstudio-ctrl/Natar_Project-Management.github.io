@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Kalkulator Kapasitas Parkir Perkotaan — Standalone</title>
+<!--
+  VERSI SATU FILE (STANDALONE) — 100% berjalan di browser, tanpa server.
+  Seluruh logika engine (Modul 1: GFA→NFA, Modul 3: regresi polinomial rumah
+  sakit + linier komersial) ditulis ulang dalam JavaScript murni dan sudah
+  diverifikasi menghasilkan angka IDENTIK dengan engine Python/NumPy.
+  Sumber regulasi: Kepdirjen Hubdat 1996/1998, PP 16/2021, Tabel II.4.
+  Cukup buka file ini di browser (dobel-klik). Bisa di-upload langsung ke
+  GitHub / GitHub Pages sebagai satu berkas.
+-->
+<style>
+  :root{
+    --panel:#fff; --ink:#0f172a; --muted:#64748b; --line:#e2e8f0;
+    --primary:#4f46e5; --accent:#0ea5e9; --warn-bg:#fffbeb; --warn-ink:#92400e;
+    --warn-line:#fde68a; --err-bg:#fef2f2; --err-ink:#991b1b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;color:var(--ink);
+    background:linear-gradient(180deg,#0f172a 0%,#1e293b 320px,#f1f5f9 320px,#f1f5f9 100%);
+    font-family:ui-sans-serif,system-ui,"Segoe UI",Roboto,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .container{max-width:1080px;margin:0 auto;padding:32px 20px 56px}
+  .app-header{color:#fff;margin-bottom:22px}
+  .app-header h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em}
+  .subtitle{color:#cbd5e1;margin:0;font-size:14px}
+  .layout{display:grid;grid-template-columns:360px 1fr;gap:20px;align-items:start}
+  @media (max-width:860px){.layout{grid-template-columns:1fr}}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:20px;box-shadow:0 10px 30px rgba(2,6,23,.18)}
+  .panel h2{font-size:16px;margin:0 0 16px}
+  .field{display:block;margin-bottom:14px}
+  .field>span{display:block;font-size:13px;font-weight:600;margin-bottom:6px;color:#334155}
+  .field em{color:var(--muted);font-weight:400;font-style:normal}
+  .field input,.field select{width:100%;padding:9px 11px;font-size:14px;border:1px solid var(--line);
+    border-radius:9px;background:#fff;color:var(--ink)}
+  .field input:focus,.field select:focus{outline:2px solid var(--primary);border-color:var(--primary)}
+  .srp-chip{font-size:12.5px;background:#eef2ff;color:#3730a3;border:1px solid #c7d2fe;
+    border-radius:8px;padding:7px 10px;margin-bottom:16px}
+  .srp-chip span{color:#6366f1}
+  .toggle{display:flex;align-items:center;gap:8px;font-size:13px;margin:6px 0 18px;color:#334155}
+  .toggle.disabled{opacity:.7;cursor:not-allowed}
+  .toggle em{color:var(--accent);font-style:normal;font-weight:600}
+  .btn-primary{width:100%;padding:11px 14px;font-size:15px;font-weight:600;background:var(--primary);
+    color:#fff;border:0;border-radius:10px;cursor:pointer}
+  .btn-primary:hover{background:#4338ca}
+  .btn-primary:disabled{opacity:.6;cursor:progress}
+  .btn-ghost{font-size:13px;font-weight:600;padding:7px 12px;border-radius:8px;cursor:pointer;
+    background:#fff;color:var(--primary);border:1px solid #c7d2fe}
+  .btn-ghost:hover{background:#eef2ff}
+  .results{min-height:220px}
+  .placeholder{color:var(--muted);font-size:14px;padding:40px 8px;text-align:center}
+  .results-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .results-head h2{margin:0}
+  .metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  @media (max-width:620px){.metric-grid{grid-template-columns:repeat(2,1fr)}}
+  .metric{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:12px}
+  .metric-label{font-size:11.5px;color:var(--muted);margin-bottom:6px}
+  .metric-value{font-size:22px;font-weight:700;letter-spacing:-.02em}
+  .metric-unit{font-size:12px;color:var(--muted);font-weight:500}
+  .detail-row{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:#475569;margin-bottom:14px}
+  .eq{font-family:ui-monospace,"Cascadia Code",Consolas,monospace;font-size:12.5px;background:#0f172a;
+    color:#a5b4fc;padding:10px 12px;border-radius:9px;margin-bottom:14px;overflow-x:auto;white-space:nowrap}
+  .breakdown{margin:10px 0 14px}
+  .breakdown h3,.chart h3{font-size:13px;margin:0 0 10px;color:#334155}
+  .bar-row{display:grid;grid-template-columns:150px 1fr 80px;gap:10px;align-items:center;margin-bottom:6px;font-size:12px}
+  .bar-label{color:#475569;text-transform:capitalize}
+  .bar-track{background:#eef2ff;border-radius:6px;height:12px;overflow:hidden}
+  .bar-fill{display:block;height:100%;background:linear-gradient(90deg,#6366f1,#0ea5e9)}
+  .bar-val{text-align:right;color:#475569}
+  .warnings{margin-top:8px}
+  .alert{font-size:12.5px;border-radius:9px;padding:9px 11px;margin-bottom:8px}
+  .alert.warn{background:var(--warn-bg);color:var(--warn-ink);border:1px solid var(--warn-line)}
+  .alert.error{background:var(--err-bg);color:var(--err-ink);border:1px solid #fecaca}
+  .chart{margin-top:18px;border-top:1px dashed var(--line);padding-top:16px}
+  .chart svg{width:100%;height:auto;background:#fff}
+  .chart .grid{stroke:#eef2f7;stroke-width:1}
+  .chart .axis{stroke:#94a3b8;stroke-width:1}
+  .chart .tick{fill:#94a3b8;font-size:10px}
+  .chart .axis-label{fill:#64748b;font-size:11px;font-weight:600}
+  .chart .curve-line{stroke:var(--primary);stroke-width:2.5;fill:none}
+  .chart .matrix-dot{fill:#0ea5e9;stroke:#fff;stroke-width:1}
+  .chart .user-guide{stroke:#f43f5e;stroke-width:1;stroke-dasharray:4 3}
+  .chart .user-dot{fill:#f43f5e;stroke:#fff;stroke-width:2}
+  .chart .user-label{fill:#be123c;font-size:11px;font-weight:700}
+  .legend{display:flex;flex-wrap:wrap;gap:16px;font-size:12px;color:#475569;margin-top:8px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:middle}
+  .legend .m{background:#0ea5e9}.legend .c{background:var(--primary)}.legend .u{background:#f43f5e}
+  .app-footer{color:#94a3b8;font-size:12px;text-align:center;margin-top:28px;line-height:1.6}
+</style>
+</head>
+<body>
+<main class="container">
+  <header class="app-header">
+    <h1>Kalkulator Kapasitas Parkir Perkotaan</h1>
+    <p class="subtitle">Kepdirjen Hubdat 1996/1998 · PP 16/2021 · Modifikasi lokal Kota Bandung — NFA-first, regresi polinomial · <b>versi satu file (offline)</b></p>
+  </header>
+
+  <div class="layout">
+    <section class="panel">
+      <form id="calc">
+        <h2>Parameter Bangunan</h2>
+        <label class="field">
+          <span>Tipologi / Fungsi Gedung</span>
+          <select id="buildingType"></select>
+        </label>
+        <div class="srp-chip" id="srpChip"></div>
+
+        <div id="commercialFields">
+          <label class="field">
+            <span>Luas Lantai Kotor / GFA (m²)</span>
+            <input type="number" id="gfa" min="1" value="50000" />
+          </label>
+          <label class="field">
+            <span>Override Efisiensi NFA/GFA <em>(opsional — fraksi 0–1 atau %)</em></span>
+            <input type="number" id="efficiencyOverride" step="0.01" placeholder="default: midpoint band tipologi" />
+          </label>
+          <label class="field">
+            <span>Override Rasio SRP / 100m² <em>(opsional)</em></span>
+            <input type="number" id="ratioOverride" step="0.1" placeholder="default: midpoint band legal" />
+          </label>
+        </div>
+
+        <div id="hospitalFields" style="display:none">
+          <label class="field">
+            <span>Jumlah Tempat Tidur (Beds)</span>
+            <input type="number" id="beds" min="1" value="200" />
+          </label>
+          <label class="field">
+            <span>Derajat Polinomial</span>
+            <select id="degree">
+              <option value="1">1 (linier)</option>
+              <option value="2" selected>2 (default)</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="toggle disabled" title="Modul 4 — pra-deduksi KDH & gate zonasi RDTR belum diimplementasikan">
+          <input type="checkbox" disabled />
+          <span>Override Perda Bandung No. 6/2023 (KDH) — <em>segera</em></span>
+        </label>
+
+        <button type="submit" class="btn-primary">Hitung Kapasitas</button>
+      </form>
+    </section>
+
+    <section class="panel results" id="results">
+      <div class="placeholder">Isi parameter di kiri lalu klik <b>Hitung Kapasitas</b>.</div>
+    </section>
+  </div>
+
+  <footer class="app-footer">
+    Mesin dihitung 100% di browser (JavaScript murni) — identik dengan engine Python/NumPy. Tanpa server, tanpa instalasi.<br/>
+    Difabel (Golongan III) = <b>absolute constraint</b> · NFA dihitung sebelum rasio · regresi: fit total → bagi beds.
+  </footer>
+</main>
+
+<script>
+/* ============================================================
+   DATA STATIS (Modul 2) — dari dokumen regulasi
+   ============================================================ */
+const BUILDING_TYPES = [
+  { value:"office",   label:"Perkantoran (Office)",     mode:"commercial", srpClass:"Golongan I",  srpDim:"2.30 × 5.00 m", stall:11.5 },
+  { value:"mall",     label:"Pusat Perbelanjaan / Mal", mode:"commercial", srpClass:"Golongan II", srpDim:"2.50 × 5.00 m", stall:12.5 },
+  { value:"retail",   label:"Pertokoan / Ritel",        mode:"commercial", srpClass:"Golongan II", srpDim:"2.50 × 5.00 m", stall:12.5 },
+  { value:"hospital", label:"Rumah Sakit (Hospital)",   mode:"hospital",   srpClass:"Golongan II", srpDim:"2.50 × 5.00 m", stall:12.5 },
+];
+const BT = Object.fromEntries(BUILDING_TYPES.map(b=>[b.value,b]));
+
+// Modul 1 — band efisiensi NFA/GFA (source: document = dari dokumen, assumed = default rekayasa)
+const EFFICIENCY_BANDS = {
+  office:   {min:0.75,max:0.85,source:"document"},
+  mall:     {min:0.60,max:0.70,source:"document"},
+  retail:   {min:0.70,max:0.80,source:"assumed"},
+  hospital: {min:0.58,max:0.68,source:"assumed"},
+  hotel:    {min:0.65,max:0.75,source:"assumed"},
+  education:{min:0.70,max:0.80,source:"assumed"},
+};
+const ABS_MIN_EFF = 0.40, ABS_MAX_EFF = 0.95;
+const PASSIVE_SPLIT = {
+  circulation_corridor:0.34, lobby_atrium_void:0.24, mep_utility:0.16,
+  lift_shaft:0.10, fire_stairs:0.08, structure_columns_walls:0.08,
+};
+
+// Modul 3 (linier) — rasio komersial per 100 m² NFA
+const COMMERCIAL_RATIOS = {
+  mall:   {min:3.5,max:7.5,source:"document"},
+  retail: {min:3.5,max:7.5,source:"document"},
+  office: {min:1.5,max:3.5,source:"document"},
+};
+
+// Modul 3 (polinomial) — Tabel II.4 Kepdirjen Hubdat 1996
+const HOSPITAL_BEDS  = [50,75,100,150,200,300,400,500,1000];
+const HOSPITAL_TOTAL = [97,100,104,111,118,132,146,160,230];
+const BEDS_MIN = 50, BEDS_MAX = 1000;
+
+/* ============================================================
+   REGRESI POLINOMIAL (pengganti numpy.polyfit, identik secara numerik)
+   ============================================================ */
+function solve(A,b){ // Gauss-Jordan + partial pivoting
+  const n=b.length; const M=A.map((r,i)=>[...r,b[i]]);
+  for(let c=0;c<n;c++){
+    let p=c; for(let r=c+1;r<n;r++) if(Math.abs(M[r][c])>Math.abs(M[p][c])) p=r;
+    [M[c],M[p]]=[M[p],M[c]];
+    const d=M[c][c]; if(Math.abs(d)<1e-15) continue;
+    for(let k=c;k<=n;k++) M[c][k]/=d;
+    for(let r=0;r<n;r++){ if(r===c) continue; const f=M[r][c]; for(let k=c;k<=n;k++) M[r][k]-=f*M[c][k]; }
+  }
+  return M.map(r=>r[n]);
+}
+function polyfit(xs,ys,deg){ // returns coefficients high→low (like np.polyfit)
+  const n=xs.length; const s=Math.max(...xs.map(Math.abs))||1; // scale x for conditioning
+  const us=xs.map(x=>x/s); const m=deg+1;
+  const M=Array.from({length:m},()=>new Array(m).fill(0)); const b=new Array(m).fill(0);
+  for(let k=0;k<n;k++){
+    const u=us[k],y=ys[k]; const pw=new Array(2*m-1).fill(1);
+    for(let p=1;p<2*m-1;p++) pw[p]=pw[p-1]*u;
+    for(let i=0;i<m;i++){ for(let j=0;j<m;j++) M[i][j]+=pw[i+j]; b[i]+=pw[i]*y; }
+  }
+  const c=solve(M,b);                       // ascending coeffs in u-space
+  const aAsc=c.map((ck,k)=>ck/Math.pow(s,k)); // convert back to raw-x ascending
+  return aAsc.reverse();                     // high→low
+}
+function polyval(coef,x){ return coef.reduce((a,c)=>a*x+c,0); }
+
+const _fitCache={};
+function fitHospital(deg){
+  if(!(deg>=1&&deg<=3)) deg=2;
+  if(_fitCache[deg]) return _fitCache[deg];
+  const coef=polyfit(HOSPITAL_BEDS,HOSPITAL_TOTAL,deg);
+  const preds=HOSPITAL_BEDS.map(x=>polyval(coef,x));
+  const mean=HOSPITAL_TOTAL.reduce((a,b)=>a+b,0)/HOSPITAL_TOTAL.length;
+  const ssr=HOSPITAL_TOTAL.reduce((a,y,i)=>a+(y-preds[i])**2,0);
+  const sst=HOSPITAL_TOTAL.reduce((a,y)=>a+(y-mean)**2,0);
+  const r2=sst>0?1-ssr/sst:1;
+  return _fitCache[deg]={degree:deg,coef,r2};
+}
+
+/* ============================================================
+   ENGINE — Modul 1 & 3 (port dari backend Python)
+   ============================================================ */
+function calculateNFA(gfa, buildingType, efficiencyOverride){
+  gfa=Number(gfa);
+  if(!isFinite(gfa)||gfa<=0) throw new Error("GFA harus angka positif.");
+  let band=EFFICIENCY_BANDS[buildingType], fallback=false;
+  const warnings=[];
+  if(!band){ band={min:0.75,max:0.85,source:"assumed"}; fallback=true;
+    warnings.push(`Tipologi '${buildingType}' tidak dikenal — pakai band generik 75–85% (indikatif).`); }
+  else if(band.source==="assumed")
+    warnings.push(`Band efisiensi '${buildingType}' adalah default rekayasa, bukan dari regulasi yang dikutip.`);
+
+  let ratio, source;
+  const ov=(efficiencyOverride==null||efficiencyOverride==="")?null:Number(efficiencyOverride);
+  if(ov!=null){
+    if(!isFinite(ov)) throw new Error("Override efisiensi harus angka.");
+    let r=ov>1?ov/100:ov;
+    if(r<ABS_MIN_EFF||r>ABS_MAX_EFF) throw new Error(`Override efisiensi ${r.toFixed(3)} di luar rentang wajar [${ABS_MIN_EFF}, ${ABS_MAX_EFF}].`);
+    ratio=r; source="override";
+    if(r<band.min||r>band.max) warnings.push(`Override ${r.toFixed(3)} di luar band tipikal ${buildingType} [${band.min}, ${band.max}].`);
+  } else { ratio=(band.min+band.max)/2; source=band.source; }
+
+  const nfa=gfa*ratio, deducted=gfa-nfa;
+  let split={...PASSIVE_SPLIT};
+  if(buildingType==="mall"){ split.lobby_atrium_void+=0.12;
+    const tot=Object.values(split).reduce((a,b)=>a+b,0); for(const k in split) split[k]/=tot; }
+  const breakdown={}; for(const k in split) breakdown[k]=deducted*split[k];
+  return {gfa,nfa,ratio,deducted,building_type:buildingType,source,band:[band.min,band.max],breakdown,warnings};
+}
+
+function calculateHospitalParking(beds, degree){
+  beds=Math.round(Number(beds));
+  if(!isFinite(beds)||beds<=0) throw new Error("Jumlah bed harus positif.");
+  const fit=fitHospital(Number(degree));
+  const warnings=[];
+  let raw=polyval(fit.coef,beds);
+  const extrapolated = beds<BEDS_MIN || beds>BEDS_MAX;
+  if(extrapolated) warnings.push(`beds=${beds} di luar domain tabel [${BEDS_MIN}, ${BEDS_MAX}] — hasil ekstrapolasi.`);
+  raw=Math.max(raw, Math.min(...HOSPITAL_TOTAL)); // floor: min total tabel
+  let ratio=raw/beds, clamped=false;
+  if(ratio<0.20||ratio>2.00){ const cl=Math.min(Math.max(ratio,0.20),2.00);
+    warnings.push(`Rasio ${ratio.toFixed(3)} SRP/bed di-clamp ke ${cl.toFixed(3)} (band wajar [0.20, 2.00]).`);
+    ratio=cl; raw=ratio*beds; clamped=true; }
+  const total=Math.ceil(raw);
+  const stall=12.5; // Golongan II
+  return {beds,total,ratio,raw,srp_class:"GOLONGAN_II",stall_area:stall,park_area:total*stall,fit,extrapolated,clamped,warnings};
+}
+
+function calculateCommercial(gfa, buildingType, ratioOverride, efficiencyOverride){
+  const rspec=COMMERCIAL_RATIOS[buildingType];
+  if(!rspec) throw new Error(`Tidak ada rasio per-100m² untuk '${buildingType}'. Untuk rumah sakit gunakan mode rumah sakit.`);
+  const area=calculateNFA(gfa,buildingType,efficiencyOverride);
+  let ratio,rsource;
+  const ov=(ratioOverride==null||ratioOverride==="")?null:Number(ratioOverride);
+  if(ov!=null){ ratio=ov; rsource="override";
+    if(ratio<rspec.min||ratio>rspec.max) area.warnings.push(`Rasio ${ratio} di luar band legal ${buildingType} [${rspec.min}, ${rspec.max}].`); }
+  else { ratio=(rspec.min+rspec.max)/2; rsource=rspec.source; }
+  const raw=(area.nfa/100)*ratio, total=Math.ceil(raw);
+  return {area,ratio,ratio_source:rsource,ratio_band:[rspec.min,rspec.max],raw,total,
+          building_type:buildingType,srp_class:BT[buildingType].srpClass.toUpperCase().replace(" ","_").replace("GOLONGAN","GOLONGAN")};
+}
+
+/* ============================================================
+   RENDER / UI
+   ============================================================ */
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n).toLocaleString("en-US");
+const fmt0=n=>Math.round(n).toLocaleString("en-US");
+
+function formatPoly(coef){
+  const n=coef.length-1;
+  return coef.map((c,i)=>{
+    const power=n-i, abs=Math.abs(c);
+    const mag=abs<1e-4?abs.toExponential(1):abs.toFixed(4);
+    const xPart=power===0?"":power===1?"·beds":`·beds^${power}`;
+    const sign=i===0?(c<0?"-":""):(c<0?" - ":" + ");
+    return `${sign}${mag}${xPart}`;
+  }).join("");
+}
+
+// init dropdown + chip
+BUILDING_TYPES.forEach(b=>{
+  const o=document.createElement("option"); o.value=b.value; o.textContent=b.label; $("buildingType").appendChild(o);
+});
+$("buildingType").value="mall";
+
+function syncMode(){
+  const bt=BT[$("buildingType").value];
+  $("srpChip").innerHTML=`SRP terikat (otomatis): <b>${bt.srpClass}</b> <span>(${bt.srpDim})</span>`;
+  const hosp = bt.mode==="hospital";
+  $("hospitalFields").style.display = hosp?"block":"none";
+  $("commercialFields").style.display = hosp?"none":"block";
+}
+$("buildingType").addEventListener("change",syncMode);
+syncMode();
+
+let lastResult=null, lastMode=null, lastType=null;
+
+$("calc").addEventListener("submit",e=>{
+  e.preventDefault();
+  const type=$("buildingType").value, bt=BT[type];
+  const out=$("results");
+  try{
+    if(bt.mode==="hospital"){
+      const h=calculateHospitalParking($("beds").value, $("degree").value);
+      lastResult=h; lastMode="hospital"; lastType=type;
+      renderHospital(h);
+    } else {
+      const c=calculateCommercial($("gfa").value, type, $("ratioOverride").value, $("efficiencyOverride").value);
+      lastResult=c; lastMode="commercial"; lastType=type;
+      renderCommercial(c);
+    }
+  }catch(err){
+    out.innerHTML=`<div class="alert error">⚠ ${err.message}</div>`;
+    lastResult=null;
+  }
+});
+
+function head(){
+  return `<div class="results-head"><h2>Hasil Kalkulasi</h2>
+    <button class="btn-ghost" id="exportBtn">⤓ Ekspor JSON</button></div>`;
+}
+function metric(label,value,unit){
+  return `<div class="metric"><div class="metric-label">${label}</div>
+    <div class="metric-value">${value}${unit?`<span class="metric-unit"> ${unit}</span>`:""}</div></div>`;
+}
+function warns(arr){
+  if(!arr||!arr.length) return "";
+  return `<div class="warnings">${arr.map(w=>`<div class="alert warn">⚠ ${w}</div>`).join("")}</div>`;
+}
+function passive(breakdown){
+  const ent=Object.entries(breakdown); if(!ent.length) return "";
+  const tot=ent.reduce((s,[,v])=>s+v,0)||1;
+  return `<div class="breakdown"><h3>Dekomposisi Area Pasif (indikatif, bukan regulatif)</h3>${
+    ent.map(([k,v])=>`<div class="bar-row"><span class="bar-label">${k.replace(/_/g," ")}</span>
+      <span class="bar-track"><span class="bar-fill" style="width:${(v/tot)*100}%"></span></span>
+      <span class="bar-val">${fmt0(v)} m²</span></div>`).join("")}</div>`;
+}
+
+function renderCommercial(c){
+  $("results").innerHTML = head()
+    + `<div class="metric-grid">`
+    + metric("Total SRP Mobil", fmt(c.total), "SRP")
+    + metric("NFA (Luas Efektif)", fmt0(c.area.nfa), "m²")
+    + metric("Efisiensi NFA/GFA", (c.area.ratio*100).toFixed(0)+"%")
+    + metric("Rasio dipakai", c.ratio, "/100m²")
+    + `</div>`
+    + `<div class="detail-row">
+        <span>GFA: <b>${fmt(c.area.gfa)} m²</b></span>
+        <span>Area pasif dipotong: <b>${fmt0(c.area.deducted)} m²</b></span>
+        <span>SRP class: <b>${c.srp_class}</b></span>
+        <span>Sumber rasio: <b>${c.ratio_source}</b></span>
+       </div>`
+    + passive(c.area.breakdown)
+    + warns(c.area.warnings);
+  wireExport();
+}
+
+function renderHospital(h){
+  $("results").innerHTML = head()
+    + `<div class="metric-grid">`
+    + metric("Total SRP Mobil", fmt(h.total), "SRP")
+    + metric("Rasio efektif", h.ratio.toFixed(2), "SRP/bed")
+    + metric("Footprint parkir", fmt0(h.park_area), "m²")
+    + metric("Kualitas fit (R²)", h.fit.r2.toFixed(5))
+    + `</div>`
+    + `<div class="detail-row">
+        <span>Beds: <b>${fmt(h.beds)}</b></span>
+        <span>SRP class: <b>${h.srp_class}</b> (${h.stall_area} m²/stall)</span>
+        <span>Derajat polinomial: <b>${h.fit.degree}</b></span>
+       </div>`
+    + `<div class="eq">total(beds) = ${formatPoly(h.fit.coef)}</div>`
+    + warns(h.warnings)
+    + chartSVG(h.fit, h.beds, h.total);
+  wireExport();
+}
+
+function chartSVG(fit, beds, total){
+  const W=560,H=340,pad={l:48,r:16,t:16,b:44};
+  const xMin=0,xMax=1050,yMin=0,yMax=250;
+  const px=x=>pad.l+((x-xMin)/(xMax-xMin))*(W-pad.l-pad.r);
+  const py=y=>H-pad.b-((y-yMin)/(yMax-yMin))*(H-pad.t-pad.b);
+  const N=80;
+  let d="";
+  for(let i=0;i<=N;i++){ const x=xMin+(i/N)*(xMax-xMin); const y=Math.max(yMin,Math.min(yMax,polyval(fit.coef,x)));
+    d+=`${i===0?"M":"L"} ${px(x).toFixed(1)} ${py(y).toFixed(1)} `; }
+  const xT=[0,200,400,600,800,1000], yT=[0,50,100,150,200,250];
+  const uY=Math.min(total,yMax);
+  const anchor = beds>0.82*xMax?"end":(beds<0.18*xMax?"start":"middle");
+  const dots=HOSPITAL_BEDS.map((b,i)=>`<circle cx="${px(b).toFixed(1)}" cy="${py(HOSPITAL_TOTAL[i]).toFixed(1)}" r="4" class="matrix-dot"/>`).join("");
+  const user = beds<=xMax ? `
+    <line x1="${px(beds).toFixed(1)}" y1="${py(yMin)}" x2="${px(beds).toFixed(1)}" y2="${py(uY).toFixed(1)}" class="user-guide"/>
+    <circle cx="${px(beds).toFixed(1)}" cy="${py(uY).toFixed(1)}" r="6" class="user-dot"/>
+    <text x="${px(beds).toFixed(1)}" y="${(py(uY)-12).toFixed(1)}" class="user-label" text-anchor="${anchor}">${beds} bed → ${total} SRP</text>` : "";
+  return `<div class="chart">
+    <h3>Kurva Regresi — Total SRP vs Jumlah Bed (Tabel II.4 Kepdirjen Hubdat 1996)</h3>
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Kurva regresi parkir rumah sakit">
+      ${yT.map(t=>`<line x1="${pad.l}" y1="${py(t)}" x2="${W-pad.r}" y2="${py(t)}" class="grid"/><text x="${pad.l-8}" y="${py(t)+4}" class="tick" text-anchor="end">${t}</text>`).join("")}
+      ${xT.map(t=>`<text x="${px(t)}" y="${H-pad.b+18}" class="tick" text-anchor="middle">${t}</text>`).join("")}
+      <line x1="${pad.l}" y1="${py(yMin)}" x2="${W-pad.r}" y2="${py(yMin)}" class="axis"/>
+      <line x1="${pad.l}" y1="${pad.t}" x2="${pad.l}" y2="${py(yMin)}" class="axis"/>
+      <path d="${d}" class="curve-line"/>
+      ${dots}
+      ${user}
+      <text x="${W/2}" y="${H-6}" class="axis-label" text-anchor="middle">Jumlah Tempat Tidur (Beds)</text>
+      <text x="14" y="${H/2}" class="axis-label" text-anchor="middle" transform="rotate(-90 14 ${H/2})">Total SRP Mobil</text>
+    </svg>
+    <div class="legend">
+      <span><i class="m"></i> Titik resmi Tabel II.4</span>
+      <span><i class="c"></i> Kurva fit (deg ${fit.degree}, R²=${fit.r2.toFixed(4)})</span>
+      <span><i class="u"></i> Input Anda</span>
+    </div>
+  </div>`;
+}
+
+function wireExport(){
+  const btn=$("exportBtn"); if(!btn) return;
+  btn.addEventListener("click",()=>{
+    const data = lastMode==="hospital"
+      ? {mode:"hospital", input:{beds:lastResult.beds, degree:lastResult.fit.degree}, result:lastResult}
+      : {mode:"commercial", input:{building_type:lastType}, result:lastResult};
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url; a.download=`parking-${lastType}-${Date.now()}.json`; a.click();
+    URL.revokeObjectURL(url);
+  });
+}
+</script>
+</body>
+</html>

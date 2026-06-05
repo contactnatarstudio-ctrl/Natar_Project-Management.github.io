@@ -192,15 +192,89 @@ tailwind.config = {
 
   .fade-in{animation:vin .3s ease}
   @keyframes vin{from{opacity:0;transform:translateY(6px)}to{opacity:1}}
+  /* cloud status chip + file manager */
+  .cloud-chip{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:30px;border:1px solid var(--line);cursor:pointer;background:#fff;color:#5a6173;white-space:nowrap}
+  .cloud-chip:before{content:"";width:8px;height:8px;border-radius:50%;background:#9aa3b5}
+  .cloud-chip.on{color:#2e7d52;border-color:#bfe3cc;background:#f0f8f3}.cloud-chip.on:before{background:#2e7d52;box-shadow:0 0 0 3px rgba(46,125,82,.18)}
+  .cloud-chip.off{color:#a96a13;border-color:#f0dcb0;background:#fdf6e9}.cloud-chip.off:before{background:#D68910}
+  .fold{border:1px solid var(--line);border-radius:11px;margin-bottom:8px;overflow:hidden}
+  .fold-head{display:flex;align-items:center;gap:11px;padding:11px 14px;cursor:pointer;background:var(--soft);font-weight:600;font-size:13.5px}
+  .fold-head .cnt{margin-left:auto;font-size:11px;color:var(--steel);font-weight:600}
+  .fold-body{display:none;padding:8px 14px 14px}
+  .fold-body.open{display:block}
+  .fitem{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed #eef1f6;font-size:13px}
+  .fitem:last-child{border:none}
+  .fitem .nm{flex:1;font-weight:500;color:var(--navy);word-break:break-all}
+  .fitem .mt{font-size:11px;color:var(--steel);white-space:nowrap}
+  .ver{font-size:9px;font-weight:700;padding:1px 6px;border-radius:20px;background:#eef2fb;color:#3a4f86}
   @media print{header.topbar,.noprint{display:none!important}.card{break-inside:avoid}}
 </style>
+
+<!-- ============================ CLOUD (opsional) ============================
+  Sinkronisasi real-time tim + penyimpanan file. GANTI konfigurasi di bawah dengan
+  milik proyek Firebase tim Anda untuk MENGAKTIFKAN kolaborasi. Selama masih
+  "PASTE_...", aplikasi berjalan mode LOKAL (localStorage, per-perangkat).
+  Panduan setup lengkap ada di README.md.
+========================================================================= -->
+<script>
+  window.NATAR_TEAM_ID = "natar-studio";          // nama "ruang kerja" bersama (boleh diganti)
+  window.NATAR_FIREBASE_CONFIG = {
+    apiKey:            "PASTE_API_KEY",
+    authDomain:        "PASTE_PROJECT.firebaseapp.com",
+    projectId:         "PASTE_PROJECT_ID",
+    storageBucket:     "PASTE_PROJECT.appspot.com",
+    messagingSenderId: "PASTE_SENDER_ID",
+    appId:             "PASTE_APP_ID"
+  };
+</script>
+<script type="module">
+  const cfg = window.NATAR_FIREBASE_CONFIG || {};
+  const ON = cfg.apiKey && !/^PASTE/.test(cfg.apiKey);
+  if (!ON) { window.__natarCloudReady && window.__natarCloudReady({ enabled:false }); }
+  else try {
+    const V = "https://www.gstatic.com/firebasejs/10.12.5/";
+    const [{ initializeApp }, fs, st, au] = await Promise.all([
+      import(V+"firebase-app.js"), import(V+"firebase-firestore.js"),
+      import(V+"firebase-storage.js"), import(V+"firebase-auth.js")
+    ]);
+    const app = initializeApp(cfg);
+    const db = fs.getFirestore(app), storage = st.getStorage(app), auth = au.getAuth(app);
+    const TEAM = window.NATAR_TEAM_ID || "natar-studio";
+    const pCol = fs.collection(db, "teams", TEAM, "projects");
+    const fCol = fs.collection(db, "teams", TEAM, "files");
+    window.NatarCloud = {
+      enabled: true,
+      upsertProject: (p)  => fs.setDoc(fs.doc(pCol, p.id), p),
+      deleteProject: (id) => fs.deleteDoc(fs.doc(pCol, id)),
+      onProjects: (cb) => fs.onSnapshot(pCol, s => { const a=[]; s.forEach(d=>a.push(d.data())); cb(a); }),
+      onFiles:    (cb) => fs.onSnapshot(fCol, s => { const a=[]; s.forEach(d=>a.push(d.data())); cb(a); }),
+      uploadFile: async (projectId, folder, file, by) => {
+        const key = projectId+"__"+folder+"__"+Date.now()+"_"+file.name.replace(/[^\w.\-]/g,"_");
+        const r = st.ref(storage, TEAM+"/"+projectId+"/"+folder+"/"+key);
+        await st.uploadBytes(r, file);
+        const url = await st.getDownloadURL(r);
+        const rec = { id:key, projectId, folder, name:file.name, size:file.size, type:file.type||"", url, path:r.fullPath, by:by||"Anonim", at:Date.now() };
+        await fs.setDoc(fs.doc(fCol, key), rec); return rec;
+      },
+      deleteFile: async (rec) => { try { await st.deleteObject(st.ref(storage, rec.path)); } catch(e){} await fs.deleteDoc(fs.doc(fCol, rec.id)); }
+    };
+    au.signInAnonymously(auth).catch(()=>{});
+    au.onAuthStateChanged(auth, u => { window.__natarCloudReady && window.__natarCloudReady({ enabled:true, uid:u&&u.uid }); });
+  } catch (e) {
+    console.warn("Cloud init gagal:", e);
+    window.__natarCloudReady && window.__natarCloudReady({ enabled:false, error:String(e&&e.message||e) });
+  }
+</script>
 </head>
 <body>
 
 <header class="topbar sticky top-0 z-50 bg-white/90 backdrop-blur border-b border-line">
   <div class="max-w-[1240px] mx-auto px-6 h-[68px] flex items-center justify-between">
     <a href="#/works" class="brand text-[26px] text-navy">natar<span class="text-royal">.</span></a>
-    <nav id="topnav" class="flex items-center gap-7"></nav>
+    <div class="flex items-center gap-5">
+      <nav id="topnav" class="flex items-center gap-6"></nav>
+      <span id="cloud-chip" class="cloud-chip" title="Status sinkronisasi tim">Lokal</span>
+    </div>
   </div>
 </header>
 
@@ -217,6 +291,8 @@ tailwind.config = {
       <div class="flex flex-col gap-1">
         <a href="#/works" class="hover:text-royal">Works</a>
         <a href="#/about" class="hover:text-royal">About</a>
+        <a href="Tools.html" class="hover:text-royal">Tools</a>
+        <a href="#/contact" class="hover:text-royal">Contact</a>
         <a href="#/admin" class="hover:text-royal">Kelola Proyek</a>
       </div>
     </div>
@@ -425,7 +501,8 @@ function loadState(){
   try{ const raw=localStorage.getItem(LS_KEY); if(raw){ const p=JSON.parse(raw); if(p&&Array.isArray(p.projects)){ state={projects:p.projects.map(normalize)}; return; } } }catch(e){ console.warn('load gagal',e); }
   state={projects:SEED.map(normalize)}; saveState();
 }
-function saveState(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){ toast('Gagal menyimpan — penyimpanan browser penuh (gambar cover terlalu besar?)'); } }
+function saveLocalOnly(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(state)); }catch(e){ toast('Gagal menyimpan — penyimpanan browser penuh (gambar cover terlalu besar?)'); } }
+function saveState(){ saveLocalOnly(); if(typeof cloudFlushSoon==='function') cloudFlushSoon(); }
 
 function wbsProgress(p){ ensure(p); let total=0,done=0; p.phases.forEach(ph=>ph.items.forEach(it=>{ total++; if(it.done)done++; })); return {done,total,pct:total?Math.round(done/total*100):0}; }
 function izinProgress(p){ ensure(p); const t=p.izinDone.length,d=p.izinDone.filter(Boolean).length; return {done:d,total:t,pct:t?Math.round(d/t*100):0}; }
@@ -452,7 +529,7 @@ function kpi(n,l){ return `<div class="bg-soft border border-line rounded-xl p-4
    NAV
    ========================================================================= */
 function renderNav(active){
-  const items=[['works','Works','#/works'],['about','About','#/about'],['tools','Tools','Tools.html'],['admin','Kelola','#/admin']];
+  const items=[['works','Works','#/works'],['about','About','#/about'],['tools','Tools','Tools.html'],['contact','Contact','#/contact'],['admin','Kelola','#/admin']];
   $('#topnav').innerHTML = items.map(([k,l,href])=>`<a href="${href}" class="navlink ${active===k?'active':''}">${l}</a>`).join('');
 }
 
@@ -784,30 +861,53 @@ function tabRisk(p){
 
 function tabFolder(p){
   const code=projectCode(p.name);
-  const tree=`<span class="f">${code}_${esc(p.name.replace(/\s+/g,''))}/</span>
-├── <span class="f">00_ADMIN/</span>            <span class="c"># kontrak, SPK, NDA, invoice, korespondensi</span>
-├── <span class="f">01_BRIEF_RISET/</span>      <span class="c"># brief klien, moodboard, referensi, survei tapak</span>
-├── <span class="f">02_LEGAL_IZIN/</span>       <span class="c"># sertifikat tanah, KRK, PBG, SLF, dok lingkungan</span>
-├── <span class="f">03_DESAIN/</span>
-│   ├── <span class="f">SD_Skematik/</span>
-│   ├── <span class="f">DD_Pengembangan/</span>
-│   └── <span class="f">3D_Render/</span>
-├── <span class="f">04_GAMBAR_KERJA/</span>     <span class="c"># DED arsitektur, struktur, MEP, RKS</span>
-│   ├── <span class="f">Arsitektur/</span>
-│   ├── <span class="f">Struktur/</span>
-│   └── <span class="f">MEP/</span>
-├── <span class="f">05_RAB_BOQ/</span>          <span class="c"># cost plan, BoQ, RAB, dokumen tender</span>
-├── <span class="f">06_KONSULTAN/</span>        <span class="c"># file dari konsultan struktur, ME, QS</span>
-├── <span class="f">07_KONSTRUKSI/</span>       <span class="c"># shop drawing, laporan lapangan, VO, foto progres</span>
-├── <span class="f">08_PRESENTASI/</span>       <span class="c"># materi meeting klien, notulen</span>
-├── <span class="f">09_SERAH_TERIMA/</span>     <span class="c"># as-built, manual O&M, foto final, berita acara</span>
-└── <span class="f">00_ARCHIVE/</span>          <span class="c"># revisi lama — jangan dihapus</span>`;
-  return `
-  <div class="card">
-    <h2 class="font-display text-2xl text-navy mb-1">Struktur Folder Standar</h2>
-    <p class="text-steel text-sm mb-4">Pola penamaan folder: <span class="font-mono text-navy">[KodeProyek]_[NamaProyek]</span> — kode otomatis: <b>${code}</b></p>
-    <div class="tree">${tree}</div>
-    <div class="note mt-4"><b>Konvensi file:</b> <span class="font-mono">YYMMDD_[Tipe]_[Deskripsi]_[Rev].ext</span> — contoh <span class="font-mono">260604_DED_DenahLt1_R02.pdf</span>. Pindahkan revisi lama ke <b>00_ARCHIVE</b>.</div>
+  const FOLDERS=[
+    ['00_ADMIN','kontrak, SPK, NDA, invoice, korespondensi'],
+    ['01_BRIEF_RISET','brief klien, moodboard, referensi, survei tapak'],
+    ['02_LEGAL_IZIN','sertifikat tanah, KRK, PBG, SLF, dok lingkungan'],
+    ['03_DESAIN','SD skematik, DD pengembangan, 3D render'],
+    ['04_GAMBAR_KERJA','DED arsitektur, struktur, MEP, RKS'],
+    ['05_RAB_BOQ','cost plan, BoQ, RAB, dokumen tender'],
+    ['06_KONSULTAN','file dari konsultan struktur, ME, QS'],
+    ['07_KONSTRUKSI','shop drawing, laporan lapangan, VO, foto progres'],
+    ['08_PRESENTASI','materi meeting klien, notulen'],
+    ['09_SERAH_TERIMA','as-built, manual O&M, foto final, berita acara'],
+    ['00_ARCHIVE','revisi lama — jangan dihapus']
+  ];
+  const cloud=cloudEnabled&&window.NatarCloud;
+  const files=(__natarFiles||[]).filter(f=>f.projectId===p.id);
+  const banner=cloud
+    ? `<div class="note mb-4">☁ <b>Penyimpanan tim aktif.</b> Unggah/unduh file di tiap folder — tersimpan di cloud, terlihat seluruh tim, lengkap riwayat versi (unggah ulang nama sama = versi baru otomatis).</div>`
+    : `<div class="note mb-4" style="background:#fdf6e9;border-color:#f0dcb0;color:#8a6312">⚠ <b>Mode lokal.</b> Folder ini baru tampilan. Aktifkan <b>sinkronisasi cloud</b> (lihat README) agar tim dapat unggah/unduh file & memantau riwayat revisi.</div>`;
+  const folderHtml=FOLDERS.map((f,fi)=>{
+    const key=f[0];
+    const inF=files.filter(x=>x.folder===key).sort((a,b)=>b.at-a.at);
+    const groups={}; inF.forEach(x=>{ (groups[x.name]=groups[x.name]||[]).push(x); });
+    const rows=Object.keys(groups).map(nm=>{
+      const vs=groups[nm];
+      return vs.map((x,vi)=>`<div class="fitem">
+        <span>📄</span>
+        <span class="nm"><a href="${esc(x.url)}" target="_blank" rel="noopener" class="hover:text-royal">${esc(x.name)}</a> ${vs.length>1?`<span class="ver">${vi===0?'terbaru':'v'+(vs.length-vi)}</span>`:''}</span>
+        <span class="mt">${(x.size/1024).toFixed(0)} KB · ${esc(x.by||'—')} · ${new Date(x.at).toLocaleDateString('id-ID')}</span>
+        <a class="mini" href="${esc(x.url)}" target="_blank" rel="noopener" title="Unduh">⭳</a>
+        ${cloud?`<button class="mini danger sm-x" data-action="file-del" data-fid="${esc(x.id)}" title="Hapus">✕</button>`:''}
+      </div>`).join('');
+    }).join('')||`<div class="text-xs text-steel py-2">Belum ada file.</div>`;
+    const upload=cloud?`<label class="addrow" style="cursor:pointer">＋ Unggah file<input type="file" class="hidden" data-fup="${key}" multiple></label>`:'';
+    return `<div class="fold">
+      <div class="fold-head" data-action="fold-toggle"><span>📁</span><span>${esc(code)}_… / ${key}</span><span class="cnt">${inF.length} file</span></div>
+      <div class="fold-body ${fi===0?'open':''}">
+        <div class="text-xs text-steel mb-2">${esc(f[1])}</div>
+        ${rows}
+        ${upload}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="card">
+    <h2 class="font-display text-2xl text-navy mb-1">Struktur Folder & Penyimpanan</h2>
+    <p class="text-steel text-sm mb-3">Pola penamaan: <span class="font-mono text-navy">[Kode]_[NamaProyek]</span> — kode: <b>${esc(code)}</b>. Konvensi file: <span class="font-mono">YYMMDD_[Tipe]_[Deskripsi]_[Rev].ext</span></p>
+    ${banner}
+    ${folderHtml}
   </div>`;
 }
 
@@ -862,6 +962,39 @@ function renderAbout(){
         <div id="about-clients" class="mt-14">
           <div class="meta-k text-steel mb-4">List of Clients <span class="text-royal">(otomatis dari data proyek)</span></div>
           <div class="flex flex-wrap gap-2">${clients.length?clients.map(c=>`<span class="border border-line rounded-full px-4 py-2 text-sm text-navy">${esc(c)}</span>`).join(''):'<span class="text-steel text-sm">Belum ada klien terdaftar.</span>'}</div>
+        </div>
+      </section>
+    </div>
+  </div>`;
+}
+
+/* =========================================================================
+   CONTACT
+   ========================================================================= */
+function renderContact(){
+  const addr='Jl. Sulaksana No. 12a, Kec. Kiaracondong, Kota Bandung, Jawa Barat, Indonesia';
+  view().innerHTML=`
+  <div class="max-w-[1240px] mx-auto px-6 py-10 fade-in">
+    <div class="grid md:grid-cols-[230px_1fr] gap-10">
+      <aside class="md:sticky md:top-[88px] self-start">
+        <h1 class="font-display text-[30px] font-light text-navy leading-none">Contact</h1>
+        <div class="w-12 h-[2px] bg-royal mt-3 mb-7"></div>
+        <p class="text-sm text-steel leading-relaxed">Mari bicarakan ruang berikutnya. Hubungi studio kami untuk konsultasi proyek, kerja sama, atau pertanyaan umum.</p>
+      </aside>
+      <section class="max-w-3xl">
+        <h2 class="font-display text-royal font-light" style="font-size:clamp(28px,4vw,40px)">Get in touch.</h2>
+        <div class="grid sm:grid-cols-2 gap-4 mt-7">
+          <div class="card p-5"><div class="meta-k text-steel mb-2">Studio</div><div class="text-navy font-medium leading-relaxed">NataR Studio<br><span class="text-steel font-normal text-sm">${esc(STUDIO.full)}</span></div></div>
+          <div class="card p-5"><div class="meta-k text-steel mb-2">Alamat</div><div class="text-navy leading-relaxed text-[15px]">${esc(addr)}</div></div>
+          <div class="card p-5"><div class="meta-k text-steel mb-2">Email</div><a href="mailto:contact.natar@gmail.com" class="text-royal font-semibold hover:underline break-all">contact.natar@gmail.com</a></div>
+          <div class="card p-5"><div class="meta-k text-steel mb-2">Telepon / WhatsApp</div><a href="https://wa.me/62881023993341" target="_blank" rel="noopener" class="text-royal font-semibold hover:underline">0881023993341</a></div>
+        </div>
+        <div class="card overflow-hidden mt-5">
+          <iframe title="Peta lokasi NataR Studio" width="100%" height="320" style="border:0;display:block" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed"></iframe>
+        </div>
+        <div class="flex flex-wrap gap-3 mt-5">
+          <a href="mailto:contact.natar@gmail.com" class="btn">✉ Kirim Email</a>
+          <a href="https://wa.me/62881023993341" target="_blank" rel="noopener" class="btn ghost">💬 WhatsApp</a>
         </div>
       </section>
     </div>
@@ -987,6 +1120,76 @@ function importJSON(file){ const fr=new FileReader(); fr.onload=()=>{ try{ const
 function resetData(){ if(!confirm('Reset ke 6 proyek contoh? Semua data saat ini hilang (kecuali sudah di-Export).'))return; state={projects:SEED.map(normalize)}; saveState(); renderAdmin(); toast('Data di-reset'); }
 
 /* =========================================================================
+   CLOUD SYNC (opsional, real-time via Firebase) — fallback otomatis ke localStorage
+   ========================================================================= */
+const debounce=(fn,ms)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms);};};
+let cloudEnabled=false;
+const myClient='c_'+Math.random().toString(36).slice(2);
+let _cloudCache={}; let __natarFiles=[]; let __pendingRemote=false;
+let teamName=localStorage.getItem('natar_team_name')||'';
+window.__natarEditing=false;
+
+/* dorong perubahan lokal ke cloud (hanya proyek yang benar-benar berubah → minim bentrok) */
+function cloudFlush(){
+  if(!window.NatarCloud||!window.NatarCloud.enabled) return;
+  const seen=new Set();
+  state.projects.forEach((p,i)=>{ p.seq=i; seen.add(p.id);
+    const j=JSON.stringify(p);
+    if(_cloudCache[p.id]!==j){ _cloudCache[p.id]=j; const c=JSON.parse(j); c._w=myClient; c._at=Date.now(); window.NatarCloud.upsertProject(c).catch(e=>console.warn('upsert',e)); }
+  });
+  Object.keys(_cloudCache).forEach(id=>{ if(!seen.has(id)){ delete _cloudCache[id]; window.NatarCloud.deleteProject(id).catch(()=>{}); } });
+}
+const cloudFlushSoon=debounce(cloudFlush,700);
+
+/* terima update real-time dari tim */
+function applyRemote(remoteDocs){
+  const byId={}; remoteDocs.forEach(d=>byId[d.id]=d);
+  const sorted=remoteDocs.slice().sort((a,b)=>(a.seq??0)-(b.seq??0));
+  const next=sorted.map(d=>{
+    if(d._w===myClient){ const loc=state.projects.find(x=>x.id===d.id); if(loc) return loc; } // edit kita sendiri: pertahankan lokal
+    const clean={...d}; delete clean._w; delete clean._at; return normalize(clean);
+  });
+  state.projects.forEach(p=>{ if(!byId[p.id]) next.push(p); });   // proyek lokal yang belum ada di cloud
+  state.projects=next;
+  _cloudCache={}; state.projects.forEach((p,i)=>{ p.seq=i; if(byId[p.id]) _cloudCache[p.id]=JSON.stringify(p); });
+  saveLocalOnly();
+  cloudFlushSoon();   // dorong proyek lokal-only ke cloud
+  if(window.__natarEditing){ __pendingRemote=true; return; }   // jangan ganggu saat sedang mengetik
+  rerenderKeepView();
+}
+function rerenderKeepView(){
+  const parts=location.hash.replace(/^#\/?/,'').split('/'); const s=parts[0]||'works', id=parts[1];
+  const sy=window.scrollY;
+  if(s==='project'&&id){ const tab=projTab, open=new Set(wbsOpen); renderProject(id); projTab=tab; wbsOpen=open; const p=currentProject(); if(p){ paintTab(p); document.querySelectorAll('#ptabs .ptab').forEach(x=>x.classList.toggle('active',x.dataset.tab===projTab)); } }
+  else router();
+  window.scrollTo(0,sy);
+}
+function applyFiles(arr){ __natarFiles=arr||[]; const p=currentProject(); if(p&&projTab==='folder'&&location.hash.includes('/project/')) paintTab(p); }
+
+function setCloudChip(status){
+  const el=$('#cloud-chip'); if(!el) return;
+  if(status&&status.enabled){ cloudEnabled=true; el.className='cloud-chip on'; el.textContent='Tim · '+(teamName||'atur nama'); el.title='Tersinkron real-time. Klik untuk atur nama Anda.'; }
+  else { cloudEnabled=false; el.className='cloud-chip off'; el.textContent='Lokal'; el.title='Mode lokal (per-perangkat). Aktifkan Firebase di index.html untuk kolaborasi tim.'; }
+}
+window.__natarCloudReady=function(status){
+  setCloudChip(status);
+  if(status&&status.enabled&&window.NatarCloud){
+    window.NatarCloud.onProjects(applyRemote);
+    window.NatarCloud.onFiles(applyFiles);
+  }
+};
+/* klik chip → atur nama untuk kolaborasi */
+document.addEventListener('click', e=>{
+  if(e.target.id==='cloud-chip' && cloudEnabled){
+    const n=prompt('Nama Anda untuk kolaborasi tim:', teamName);
+    if(n!=null){ teamName=n.trim(); localStorage.setItem('natar_team_name',teamName); setCloudChip({enabled:true}); }
+  }
+});
+/* tunda render saat user sedang mengetik/edit agar tak terganggu update tim */
+document.addEventListener('focusin', e=>{ if(e.target.closest&&e.target.closest('[contenteditable],input,textarea,select,.modal')) window.__natarEditing=true; });
+document.addEventListener('focusout', ()=>{ setTimeout(()=>{ const a=document.activeElement; if(!(a&&a.closest&&a.closest('[contenteditable],input,textarea,select,.modal'))){ window.__natarEditing=false; if(__pendingRemote){ __pendingRemote=false; rerenderKeepView(); } } },60); });
+
+/* =========================================================================
    ROUTER
    ========================================================================= */
 function router(){
@@ -994,6 +1197,7 @@ function router(){
   renderNav(s==='project'?'works':s);
   if(s==='project'&&id) renderProject(id);
   else if(s==='about') renderAbout();
+  else if(s==='contact') renderContact();
   else if(s==='admin') renderAdmin();
   else renderWorks();
   if(s!=='about') window.scrollTo({top:0});
@@ -1036,6 +1240,8 @@ document.addEventListener('click', e=>{
     case 'risk-add': if(p){ p.riskRows.push({title:'Risiko baru',like:'Kadang',impact:'Sedang',mit:'',pic:''}); saveState(); rerenderTab(); } break;
     case 'risk-del': if(p){ p.riskRows.splice(+a.dataset.ri,1); saveState(); rerenderTab(); } break;
     case 'cover-clear': { formCover=''; const pv=$('#cover-prev'); if(pv)pv.innerHTML='<span>Belum ada gambar</span>'; break; }
+    case 'fold-toggle': { const b=a.parentElement.querySelector('.fold-body'); if(b)b.classList.toggle('open'); break; }
+    case 'file-del': { const rec=(__natarFiles||[]).find(x=>x.id===a.dataset.fid); if(rec&&window.NatarCloud&&confirm('Hapus file "'+rec.name+'"? Versi ini akan hilang permanen.')) window.NatarCloud.deleteFile(rec).then(()=>toast('File dihapus')).catch(()=>toast('Gagal menghapus file')); break; }
     case 'add': openForm(); break;
     case 'edit': openForm(a.dataset.id); break;
     case 'del': delProject(a.dataset.id); break;
@@ -1063,6 +1269,11 @@ document.addEventListener('change', e=>{
     saveState(); return; }
   if(t.id==='import-file' && t.files[0]){ importJSON(t.files[0]); t.value=''; return; }
   if(t.id==='cover-file' && t.files[0]){ handleCoverFile(t.files[0]); t.value=''; return; }
+  if(t.matches&&t.matches('input[type=file][data-fup]') && t.files.length){
+    const p=currentProject();
+    if(p&&window.NatarCloud&&window.NatarCloud.enabled){ const folder=t.dataset.fup; const list=[...t.files]; toast('Mengunggah '+list.length+' file…'); Promise.all(list.map(f=>window.NatarCloud.uploadFile(p.id,folder,f,teamName))).then(()=>toast('Unggah selesai ✓')).catch(err=>toast('Gagal unggah: '+(err.message||err))); }
+    t.value=''; return;
+  }
   if(t.matches('input[data-edit]')||t.matches('select[data-edit]')){
     const p=currentProject(); if(!p)return;
     applyEdit(p,t.dataset.edit,t.value); saveState();
